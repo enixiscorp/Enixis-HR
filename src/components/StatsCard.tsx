@@ -1,0 +1,40 @@
+import { LucideIcon } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+
+interface StatsCardProps {
+    title: string
+    value: string | number
+    icon: LucideIcon
+    trend?: {
+        value: number
+        isPositive: boolean
+    }
+    gradient: string
+}
+
+export default function StatsCard({ title, value, icon: Icon, trend, gradient }: StatsCardProps) {
+    return (
+        <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">
+                            {title}
+                        </p>
+                        <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
+                            {value}
+                        </h3>
+                        {trend && (
+                            <p className={`text-sm mt-2 ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
+                            </p>
+                        )}
+                    </div>
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+                        <Icon className="w-7 h-7 text-white" />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
