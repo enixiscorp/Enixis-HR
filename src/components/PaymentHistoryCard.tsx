@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { usePayments } from '@/hooks/usePayments'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { Wallet, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -10,13 +11,7 @@ interface PaymentHistoryCardProps {
 
 export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) {
     const { payments, loading, totalPaid, pendingPayments } = usePayments(userId)
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'EUR',
-        }).format(amount)
-    }
+    const { formatCurrency } = useCurrency()
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('fr-FR', {

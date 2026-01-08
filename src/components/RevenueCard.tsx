@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useRevenues } from '@/hooks/useRevenues'
 import { DollarSign, TrendingUp } from 'lucide-react'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { useState } from 'react'
 
 interface RevenueCardProps {
@@ -10,16 +11,10 @@ interface RevenueCardProps {
 
 export default function RevenueCard({ userId }: RevenueCardProps) {
     const { revenues, loading, totalRevenue, revenuesByPeriod } = useRevenues(userId)
+    const { formatCurrency } = useCurrency()
     const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'monthly' | 'quarterly' | 'yearly' | 'all'>('all')
 
     const displayRevenues = selectedPeriod === 'all' ? revenues : revenuesByPeriod(selectedPeriod)
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'EUR',
-        }).format(amount)
-    }
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -53,8 +48,8 @@ export default function RevenueCard({ userId }: RevenueCardProps) {
                             key={period}
                             onClick={() => setSelectedPeriod(period)}
                             className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${selectedPeriod === period
-                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
-                                    : 'bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-white/20'
+                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                                : 'bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-white/20'
                                 }`}
                         >
                             {period === 'all' ? 'Tous' : period.charAt(0).toUpperCase() + period.slice(1)}

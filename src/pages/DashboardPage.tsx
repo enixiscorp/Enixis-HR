@@ -1,20 +1,47 @@
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import StatsCard from '@/components/StatsCard'
 import RevenueCard from '@/components/RevenueCard'
 import ScheduleCard from '@/components/ScheduleCard'
 import PaymentHistoryCard from '@/components/PaymentHistoryCard'
-import { LogOut, DollarSign, Calendar, Wallet, Users, Building2 } from 'lucide-react'
+import { CollaboratorSelect } from '@/components/CollaboratorSelect'
+import { LogOut, DollarSign, Calendar, Wallet, Users, Building2, Settings } from 'lucide-react'
 import { useRevenues } from '@/hooks/useRevenues'
 import { useSchedules } from '@/hooks/useSchedules'
 import { usePayments } from '@/hooks/usePayments'
+import { currencies } from '@/constants/currencies'
 
 export default function DashboardPage() {
     const { user, profile, signOut } = useAuth()
-    const { totalRevenue, loading: revenuesLoading } = useRevenues(user?.id)
-    const { upcomingSchedules, loading: schedulesLoading } = useSchedules(user?.id)
-    const { totalPaid, pendingPayments, loading: paymentsLoading } = usePayments(user?.id)
+    const { currency, setCurrency, formatCurrency } = useCurrency()
+
+    // State to track which user's data we are viewing
+    // Default to the logged-in user
+    const [selectedUserId, setSelectedUserId] = useState<string | undefined>(user?.id)
+
+    // Update selectedUserId when user loads if not already set
+    useEffect(() => {
+        if (user?.id && !selectedUserId) {
+            setSelectedUserId(user.id)
+        }
+    }, [user, selectedUserId])
+
+    // Data hooks now use the selectedUserId
+    const { totalRevenue, loading: revenuesLoading } = useRevenues(selectedUserId)
+    const { upcomingSchedules, loading: schedulesLoading } = useSchedules(selectedUserId)
+    const { totalPaid, pendingPayments, loading: paymentsLoading } = usePayments(selectedUserId)
+
+    const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
 
     const getInitials = () => {
         if (profile?.first_name && profile?.last_name) {
@@ -23,19 +50,12 @@ export default function DashboardPage() {
         return user?.email?.[0].toUpperCase() || 'U'
     }
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR', {
-            style: 'currency',
-            currency: 'EUR',
-        }).format(amount)
-    }
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-slate-900">
             {/* Header */}
             <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center space-x-4">
                             <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
                                 <Building2 className="w-7 h-7 text-white" />
@@ -49,7 +69,29 @@ export default function DashboardPage() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
+
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                            {/* Currency Selector */}
+                            <div className="flex items-center gap-2">
+                                <div className="text-slate-500">
+                                    <Settings className="w-4 h-4" />
+                                </div>
+                                <Select value={currency} onValueChange={setCurrency}>
+                                    <SelectTrigger className="w-[180px] h-9">
+                                        <SelectValue placeholder="Devise" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((c) => (
+                                            <SelectItem key={c.code} value={c.code}>
+                                                {c.symbol} - {c.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+
                             <div className="flex items-center gap-3">
                                 <Avatar className="w-10 h-10 border-2 border-purple-500">
                                     <AvatarImage src={profile?.avatar_url || undefined} />
@@ -64,7 +106,7 @@ export default function DashboardPage() {
                                             : user?.email}
                                     </p>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 capitalize">
-                                        {profile?.role || 'Utilisateur'}
+                                        {profile?.role === 'super_admin' ? 'Super Admin' : profile?.role}
                                     </p>
                                 </div>
                             </div>
@@ -74,7 +116,6 @@ export default function DashboardPage() {
                                 className="flex items-center space-x-2 border-slate-300 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300"
                             >
                                 <LogOut className="w-4 h-4" />
-                                <span className="hidden sm:inline">Déconnexion</span>
                             </Button>
                         </div>
                     </div>
@@ -83,14 +124,44 @@ export default function DashboardPage() {
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Welcome Section */}
-                <div className="mb-8">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                        Bienvenue, {profile?.first_name || user?.email?.split('@')[0]}! 👋
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400">
-                        Voici un aperçu de votre activité
-                    </p>
+                {/* Welcome Section & Admin Controls */}
+                <div className="mb-8 space-y-4">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div>
+                            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                                Bienvenue, {profile?.first_name || user?.email?.split('@')[0]}! 👋
+                            </h2>
+                            <p className="text-slate-600 dark:text-slate-400">
+                                {isAdmin
+                                    ? "Gérez l'ensemble des collaborateurs et de l'activité."
+                                    : "Voici un aperçu de votre activité."}
+                            </p>
+                        </div>
+
+                        {/* Admin Filters - Only visible to Admins */}
+                        {isAdmin && (
+                            <div className="flex flex-col sm:flex-row gap-3 bg-white/50 p-3 rounded-xl border border-slate-200 backdrop-blur-sm">
+                                <div className="flex items-center gap-2 px-2">
+                                    <Users className="w-4 h-4 text-slate-500" />
+                                    <span className="text-sm font-medium text-slate-700">Filtrer par :</span>
+                                </div>
+                                <CollaboratorSelect
+                                    value={selectedUserId || ''}
+                                    onValueChange={setSelectedUserId}
+                                />
+                                {selectedUserId !== user?.id && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSelectedUserId(user?.id)}
+                                        className="text-xs"
+                                    >
+                                        Voir mes données
+                                    </Button>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Statistics Cards */}
@@ -121,40 +192,20 @@ export default function DashboardPage() {
                     />
                 </div>
 
-                {/* Admin Section */}
-                {(profile?.role === 'admin' || profile?.role === 'super_admin') && (
-                    <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-200 dark:border-purple-700 backdrop-blur-xl">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                                <Users className="w-5 h-5 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                                Panneau d'administration
-                            </h3>
-                        </div>
-                        <p className="text-slate-700 dark:text-slate-300 mb-4">
-                            En tant qu'{profile?.role === 'super_admin' ? 'administrateur principal' : 'administrateur'},
-                            vous avez accès aux fonctionnalités de gestion des collaborateurs.
-                        </p>
-                        <div className="flex gap-3">
-                            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                                Gérer les collaborateurs
-                            </Button>
-                            <Button variant="outline">
-                                Voir les rapports
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
                 {/* Data Cards Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {user?.id && (
+                    {selectedUserId && (
                         <>
-                            <RevenueCard userId={user.id} />
-                            <ScheduleCard userId={user.id} />
+                            <RevenueCard userId={selectedUserId} />
+
+                            {/* Schedule Card with Edit capabilities for Admins */}
+                            <ScheduleCard
+                                userId={selectedUserId}
+                                isEditable={isAdmin}
+                            />
+
                             <div className="lg:col-span-2">
-                                <PaymentHistoryCard userId={user.id} />
+                                <PaymentHistoryCard userId={selectedUserId} />
                             </div>
                         </>
                     )}
