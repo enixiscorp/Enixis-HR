@@ -28,7 +28,6 @@ import {
     Building2,
     Settings,
     LayoutDashboard,
-    ShieldCheck,
     AlertTriangle
 } from 'lucide-react'
 import { useRevenues } from '@/hooks/useRevenues'
@@ -72,74 +71,70 @@ export default function DashboardPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-slate-900">
             {/* Header */}
             <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                        <div className="flex items-center space-x-3 md:space-x-4">
+                            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg overflow-hidden shrink-0">
                                 {settings?.logo_url ? (
                                     <img src={settings.logo_url} alt="Logo" className="w-full h-full object-cover" />
                                 ) : (
-                                    <Building2 className="w-7 h-7 text-white" />
+                                    <Building2 className="w-6 h-6 md:w-7 md:h-7 text-white" />
                                 )}
                             </div>
-                            <div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            <div className="min-w-0">
+                                <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
                                     Enixis HR
                                 </h1>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400">
                                     Plateforme RH
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                            {/* Currency Selector */}
+                        <div className="flex items-center justify-between md:justify-end gap-2 md:gap-4 w-full md:w-auto">
+                            {/* Currency Selector - Simplified on mobile */}
                             <div className="flex items-center gap-2">
                                 <Select value={currency} onValueChange={setCurrency}>
-                                    <SelectTrigger className="w-[180px] h-9 bg-white/50 backdrop-blur-sm">
+                                    <SelectTrigger className="w-[100px] md:w-[150px] h-9 bg-white/50 backdrop-blur-sm">
                                         <SelectValue placeholder="Devise" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {currencies.map((c) => (
                                             <SelectItem key={c.code} value={c.code}>
-                                                {c.symbol} - {c.name}
+                                                {c.symbol} <span className="hidden md:inline">- {c.name}</span>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
 
-                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
-
-                            <div className="flex items-center gap-3">
-                                <Avatar className="w-10 h-10 border-2 border-purple-500">
-                                    <AvatarImage src={profile?.avatar_url || undefined} />
-                                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white font-semibold">
-                                        {getInitials()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="hidden sm:block">
-                                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                                        {profile?.first_name && profile?.last_name
-                                            ? `${profile.first_name} ${profile.last_name}`
-                                            : user?.email}
-                                    </p>
-                                    <div className="flex items-center gap-1">
-                                        {isAdmin && <ShieldCheck className="w-3 h-3 text-purple-600" />}
-                                        <p className="text-xs text-slate-600 dark:text-slate-400 capitalize">
-                                            {profile?.role === 'super_admin' ? 'Super Admin' : profile?.role || 'Chargement...'}
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="text-right hidden sm:block">
+                                        <p className="text-xs font-semibold text-slate-900 dark:text-white truncate max-w-[120px]">
+                                            {profile?.first_name || user?.email?.split('@')[0]}
+                                        </p>
+                                        <p className="text-[10px] text-slate-600 dark:text-slate-400 capitalize">
+                                            {profile?.role === 'super_admin' ? 'Super Admin' : profile?.role || '...'}
                                         </p>
                                     </div>
+                                    <Avatar className="w-9 h-9 md:w-10 md:h-10 border-2 border-purple-500 shrink-0">
+                                        <AvatarImage src={profile?.avatar_url || undefined} />
+                                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-xs font-semibold">
+                                            {getInitials()}
+                                        </AvatarFallback>
+                                    </Avatar>
                                 </div>
+                                <Button
+                                    onClick={() => signOut()}
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 w-9 p-0 md:w-auto md:px-3 flex items-center justify-center space-x-2 border-slate-300 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                >
+                                    <LogOut className="w-4 h-4 text-red-500 md:text-current" />
+                                    <span className="hidden md:inline">Quitter</span>
+                                </Button>
                             </div>
-                            <Button
-                                onClick={() => signOut()}
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center space-x-2 border-slate-300 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300"
-                            >
-                                <LogOut className="w-4 h-4" />
-                            </Button>
                         </div>
                     </div>
                 </div>

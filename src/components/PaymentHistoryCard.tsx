@@ -1,4 +1,4 @@
-import { Wallet, FileDown, Table } from 'lucide-react'
+import { Wallet, FileDown, Table, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -104,40 +104,48 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                                 key={payment.id}
                                 className="p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-shadow"
                             >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <p className="font-semibold text-slate-900 dark:text-white text-lg">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex-1 space-y-1">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-bold text-slate-900 dark:text-white text-lg">
                                                 {formatCurrency(Number(payment.amount))}
                                             </p>
-                                            <Badge variant={getStatusVariant(payment.status)}>
+                                            <Badge variant={getStatusVariant(payment.status)} className="text-[10px] h-5">
                                                 {getStatusLabel(payment.status)}
                                             </Badge>
                                         </div>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                                            {formatDate(payment.payment_date)}
-                                        </p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                                            Type: {getPaymentTypeLabel(payment.payment_type)}
-                                        </p>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                                            <div className="flex items-center gap-1">
+                                                <Calendar className="w-3 h-3" />
+                                                {formatDate(payment.payment_date)}
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <Table className="w-3 h-3" />
+                                                {getPaymentTypeLabel(payment.payment_type)}
+                                            </div>
+                                        </div>
                                     </div>
                                     {payment.status === 'paid' && (
-                                        <div className="flex gap-2 ml-2">
+                                        <div className="flex gap-2 w-full sm:w-auto">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
+                                                className="flex-1 sm:flex-none border-purple-200 dark:border-purple-900/50 h-9"
                                                 title="Exporter en PDF"
                                                 onClick={() => generatePaymentPDF(payment, currentCollaborator, settings?.logo_url || null)}
                                             >
-                                                <FileDown className="w-4 h-4 text-purple-600" />
+                                                <FileDown className="w-4 h-4 mr-2 text-purple-600" />
+                                                <span className="sm:hidden text-xs">PDF</span>
                                             </Button>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
+                                                className="flex-1 sm:flex-none border-green-200 dark:border-green-900/50 h-9"
                                                 title="Exporter en Excel"
                                                 onClick={() => generatePaymentExcel(payment, currentCollaborator)}
                                             >
-                                                <Table className="w-4 h-4 text-green-600" />
+                                                <Table className="w-4 h-4 mr-2 text-green-600" />
+                                                <span className="sm:hidden text-xs">Excel</span>
                                             </Button>
                                         </div>
                                     )}

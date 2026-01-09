@@ -101,40 +101,47 @@ export function AbsenceManagement() {
                         <div className="grid gap-4">
                             {pendingRequests.map(request => (
                                 <div key={request.id} className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <User className="w-4 h-4 text-purple-500" />
-                                            <span className="font-semibold text-slate-900 dark:text-white">
-                                                {request.profile?.first_name} {request.profile?.last_name}
-                                            </span>
-                                            <Badge variant="outline" className="text-xs">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center flex-wrap gap-2">
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                <User className="w-4 h-4 text-purple-500 shrink-0" />
+                                                <span className="font-semibold text-slate-900 dark:text-white truncate">
+                                                    {request.profile?.first_name} {request.profile?.last_name}
+                                                </span>
+                                            </div>
+                                            <Badge variant="outline" className="text-[10px] h-5">
                                                 {getAbsenceTypeLabel(request.type)}
                                             </Badge>
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-slate-600 dark:text-slate-400">
                                             <div className="flex items-center gap-1">
-                                                <Calendar className="w-4 h-4" />
+                                                <Calendar className="w-3.5 h-3.5" />
                                                 <span>{new Date(request.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</span>
                                             </div>
                                             {request.reason && (
-                                                <span className="italic">"{request.reason}"</span>
+                                                <div className="flex items-start gap-1">
+                                                    <span className="shrink-0 text-slate-400">"</span>
+                                                    <span className="italic line-clamp-2 md:line-clamp-none">{request.reason}</span>
+                                                    <span className="shrink-0 text-slate-400">"</span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0">
                                         <Button
                                             size="sm"
-                                            className="bg-green-600 hover:bg-green-700 text-white"
+                                            className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white text-xs h-9"
                                             onClick={() => handleAction(request.id, 'approved')}
                                         >
-                                            <Check className="w-4 h-4 mr-1" /> Approver
+                                            <Check className="w-3.5 h-3.5 mr-1" /> Approver
                                         </Button>
                                         <Button
                                             size="sm"
                                             variant="destructive"
+                                            className="flex-1 md:flex-none text-xs h-9"
                                             onClick={() => handleAction(request.id, 'rejected')}
                                         >
-                                            <X className="w-4 h-4 mr-1" /> Refuser
+                                            <X className="w-3.5 h-3.5 mr-1" /> Refuser
                                         </Button>
                                     </div>
                                 </div>

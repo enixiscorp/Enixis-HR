@@ -212,56 +212,97 @@ export function UserManagement() {
                     {loading ? (
                         <div className="text-center py-8">Chargement des utilisateurs...</div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Nom</th>
-                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Rôle</th>
-                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Statut</th>
-                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {collaborators.map(user => (
-                                        <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                            <td className="py-3 px-4">
-                                                <div className="font-medium text-slate-900 dark:text-white">
+                        <>
+                            {/* Mobile View: Cards */}
+                            <div className="grid grid-cols-1 gap-4 md:hidden">
+                                {collaborators.map(user => (
+                                    <div key={user.id} className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="font-bold text-slate-900 dark:text-white">
                                                     {user.first_name} {user.last_name}
                                                 </div>
-                                                <div className="text-xs text-slate-500">{user.id.substring(0, 8)}...</div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <div className="flex items-center gap-1">
-                                                    {user.role === 'super_admin' ? (
-                                                        <ShieldAlert className="w-4 h-4 text-red-500" />
-                                                    ) : user.role === 'admin' ? (
-                                                        <Shield className="w-4 h-4 text-purple-500" />
-                                                    ) : (
-                                                        <Users className="w-4 h-4 text-blue-500" />
-                                                    )}
-                                                    <span className="capitalize text-sm text-slate-700 dark:text-slate-300">
-                                                        {user.role === 'collaborator' ? 'Collaborateur' :
-                                                            user.role === 'admin' ? 'Administrateur' : 'Super Admin'}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-4">
-                                                <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
-                                                    {user.status === 'active' ? 'Actif' : user.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="py-3 px-4 text-right">
-                                                <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
-                                                    <Edit2 className="w-4 h-4 mr-1" />
-                                                    Éditer
-                                                </Button>
-                                            </td>
+                                                <div className="text-[10px] text-slate-500">{user.id}</div>
+                                            </div>
+                                            <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
+                                                {user.status === 'active' ? 'Actif' : user.status}
+                                            </Badge>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1">
+                                                {user.role === 'super_admin' ? (
+                                                    <ShieldAlert className="w-4 h-4 text-red-500" />
+                                                ) : user.role === 'admin' ? (
+                                                    <Shield className="w-4 h-4 text-purple-500" />
+                                                ) : (
+                                                    <Users className="w-4 h-4 text-blue-500" />
+                                                )}
+                                                <span className="capitalize text-xs text-slate-700 dark:text-slate-300">
+                                                    {user.role === 'collaborator' ? 'Collaborateur' :
+                                                        user.role === 'admin' ? 'Administrateur' : 'Super Admin'}
+                                                </span>
+                                            </div>
+                                            <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)} className="h-8 px-2">
+                                                <Edit2 className="w-3 h-3 mr-1" />
+                                                Éditer
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop View: Table */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 dark:border-slate-700">
+                                            <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Nom</th>
+                                            <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Rôle</th>
+                                            <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Statut</th>
+                                            <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white text-right">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        {collaborators.map(user => (
+                                            <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                                <td className="py-3 px-4">
+                                                    <div className="font-medium text-slate-900 dark:text-white">
+                                                        {user.first_name} {user.last_name}
+                                                    </div>
+                                                    <div className="text-xs text-slate-500">{user.id.substring(0, 8)}...</div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <div className="flex items-center gap-1">
+                                                        {user.role === 'super_admin' ? (
+                                                            <ShieldAlert className="w-4 h-4 text-red-500" />
+                                                        ) : user.role === 'admin' ? (
+                                                            <Shield className="w-4 h-4 text-purple-500" />
+                                                        ) : (
+                                                            <Users className="w-4 h-4 text-blue-500" />
+                                                        )}
+                                                        <span className="capitalize text-sm text-slate-700 dark:text-slate-300">
+                                                            {user.role === 'collaborator' ? 'Collaborateur' :
+                                                                user.role === 'admin' ? 'Administrateur' : 'Super Admin'}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
+                                                        {user.status === 'active' ? 'Actif' : user.status}
+                                                    </Badge>
+                                                </td>
+                                                <td className="py-3 px-4 text-right">
+                                                    <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                                                        <Edit2 className="w-4 h-4 mr-1" />
+                                                        Éditer
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     )}
                 </CardContent>
             </Card>
