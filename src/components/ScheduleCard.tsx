@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useSchedules } from '@/hooks/useSchedules'
-import { Calendar, Clock, Plus, Edit2 } from 'lucide-react'
+import { useAbsenceRequests } from '@/hooks/useAbsenceRequests'
+import { Calendar, Clock, Plus, Edit2, AlertCircle } from 'lucide-react'
 import { ScheduleDialog } from './ScheduleDialog'
+import { AbsenceRequestDialog } from './AbsenceRequestDialog'
 
 interface ScheduleCardProps {
     userId: string
@@ -12,13 +14,20 @@ interface ScheduleCardProps {
 }
 
 export default function ScheduleCard({ userId, isEditable = false }: ScheduleCardProps) {
-    const { schedules, loading, upcomingSchedules } = useSchedules(userId)
+    const { schedules, loading: schedulesLoading, upcomingSchedules } = useSchedules(userId)
+    const { requests, loading: requestsLoading } = useAbsenceRequests(userId)
+
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [isAbsenceDialogOpen, setIsAbsenceDialogOpen] = useState(false)
     const [scheduleToEdit, setScheduleToEdit] = useState<any>(null)
 
-    const handleAdd = () => {
+    const handleAddSchedule = () => {
         setScheduleToEdit(null)
         setIsDialogOpen(true)
+    }
+
+    const handleAddAbsence = () => {
+        setIsAbsenceDialogOpen(true)
     }
 
     const handleEdit = (schedule: any) => {
@@ -65,6 +74,23 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
         }
     }
 
+    const getAbsenceTypeLabel = (type: string) => {
+        switch (type) {
+            case 'repos': return 'Repos'
+            case 'sick_leave': return 'Arrêt Maladie'
+            case 'on_leave': return 'Congé'
+            default: return type
+        }
+    }
+
+    const loading = schedulesLoading || requestsLoading
+
+    // Combine schedules and requests by date
+    const allDays = Array.from(new Set([
+        ...schedules.map(s => s.date),
+        ...requests.map(r => r.date)
+    ])).sort((a, b) => b.localeCompare(a)).slice(0, 10)
+
     return (
         <>
             <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
@@ -74,15 +100,19 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
                             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
                                 <Calendar className="w-5 h-5 text-white" />
                             </div>
-                            Horaires
+                            Horaires & Absences
                         </CardTitle>
                         <div className="flex items-center gap-2">
                             <Badge variant="default" className="text-sm">
                                 {upcomingSchedules.length} à venir
                             </Badge>
+                            {/* Collaborators can now request absences via (+) */}
+                            <Button size="sm" onClick={handleAddAbsence} className="h-8 w-8 p-0 bg-purple-600 hover:bg-purple-700" title="Demander une absence">
+                                <Plus className="w-4 h-4" />
+                            </Button>
                             {isEditable && (
-                                <Button size="sm" onClick={handleAdd} className="h-8 w-8 p-0">
-                                    <Plus className="w-4 h-4" />
+                                <Button size="sm" onClick={handleAddSchedule} variant="outline" className="h-8 w-8 p-0" title="Ajouter un horaire">
+                                    <Clock className="w-4 h-4" />
                                 </Button>
                             )}
                         </div>
@@ -91,51 +121,75 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
                 <CardContent>
                     {loading ? (
                         <div className="text-center py-8 text-slate-500">Chargement...</div>
-                    ) : schedules.length === 0 ? (
+                    ) : allDays.length === 0 ? (
                         <div className="text-center py-8 text-slate-500">
-                            Aucun horaire planifié
+                            Aucun horaire ou demande planifié
                         </div>
                     ) : (
-                        <div className="space-y-3 max-h-96 overflow-y-auto">
-                            {schedules.slice(0, 10).map((schedule) => (
-                                <div
-                                    key={schedule.id}
-                                    className="p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-shadow group"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
+                        <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                            {allDays.map((date) => {
+                                const daySchedules = schedules.filter(s => s.date === date)
+                                const dayRequests = requests.filter(r => r.date === date)
+
+                                return (
+                                    <div
+                                        key={date}
+                                        className="p-4 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow group relative overflow-hidden"
+                                    >
+                                        <div className="mb-2 flex justify-between items-center">
+                                            <div className="flex items-center gap-2">
                                                 <Calendar className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                                                 <p className="font-semibold text-slate-900 dark:text-white">
-                                                    {formatDate(schedule.date)}
+                                                    {formatDate(date)}
                                                 </p>
                                             </div>
-                                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                                <Clock className="w-4 h-4" />
-                                                <span>
-                                                    {formatTime(schedule.start_time)} -{' '}
-                                                    {formatTime(schedule.end_time)}
-                                                </span>
-                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Badge variant={getStatusVariant(schedule.status)}>
-                                                {getStatusLabel(schedule.status)}
-                                            </Badge>
-                                            {isEditable && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
-                                                    onClick={() => handleEdit(schedule)}
-                                                >
-                                                    <Edit2 className="w-4 h-4 text-slate-500" />
-                                                </Button>
-                                            )}
+
+                                        <div className="space-y-2">
+                                            {/* Show existing schedules */}
+                                            {daySchedules.map(schedule => (
+                                                <div key={schedule.id} className="flex items-center justify-between text-sm pl-6">
+                                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                                                        <Clock className="w-3 h-3" />
+                                                        <span>
+                                                            {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
+                                                        </span>
+                                                        <Badge variant={getStatusVariant(schedule.status)} className="scale-75 origin-left">
+                                                            {getStatusLabel(schedule.status)}
+                                                        </Badge>
+                                                    </div>
+                                                    {isEditable && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                                                            onClick={() => handleEdit(schedule)}
+                                                        >
+                                                            <Edit2 className="w-3 h-3 text-slate-500" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            ))}
+
+                                            {/* Show absence requests with blinking status */}
+                                            {dayRequests.map(request => (
+                                                <div key={request.id} className="flex items-center justify-between text-sm pl-6">
+                                                    <div className="flex items-center gap-2 font-medium text-purple-600 dark:text-purple-400">
+                                                        <AlertCircle className="w-3 h-3" />
+                                                        <span>{getAbsenceTypeLabel(request.type)}</span>
+                                                        <Badge
+                                                            variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'success' : 'destructive'}
+                                                            className={`scale-75 origin-left ${request.status === 'pending' ? 'animate-[pulse_1.5s_infinite] bg-purple-100 dark:bg-purple-900/30' : ''}`}
+                                                        >
+                                                            {request.status === 'pending' ? 'En attente' : request.status === 'approved' ? 'Approuvé' : 'Refusé'}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     )}
                 </CardContent>
@@ -146,9 +200,14 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
                 onOpenChange={setIsDialogOpen}
                 userId={userId}
                 scheduleToEdit={scheduleToEdit}
-                onSuccess={() => {
-                    // Refresh is handled by realtime subscription in hook
-                }}
+                onSuccess={() => { }}
+            />
+
+            <AbsenceRequestDialog
+                open={isAbsenceDialogOpen}
+                onOpenChange={setIsAbsenceDialogOpen}
+                userId={userId}
+                onSuccess={() => { }}
             />
         </>
     )

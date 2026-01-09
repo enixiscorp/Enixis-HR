@@ -77,3 +77,19 @@ export interface StatusHistory {
     changed_at: string
     reason: string | null
 }
+
+export type AbsenceType = 'repos' | 'sick_leave' | 'on_leave'
+export type RequestStatus = 'pending' | 'approved' | 'rejected'
+
+export interface AbsenceRequest {
+    id: string
+    user_id: string
+    date: string
+    type: AbsenceType
+    status: RequestStatus
+    reason: string | null
+    created_at: string
+    updated_at: string
+    processed_by: string | null
+    processed_at: string | null
+}

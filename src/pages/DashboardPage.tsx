@@ -35,6 +35,7 @@ import { useRevenues } from '@/hooks/useRevenues'
 import { useSchedules } from '@/hooks/useSchedules'
 import { usePayments } from '@/hooks/usePayments'
 import { currencies } from '@/constants/currencies'
+import { AbsenceManagement } from '@/components/AbsenceManagement'
 
 export default function DashboardPage() {
     const { user, profile, signOut } = useAuth()
@@ -183,6 +184,10 @@ export default function DashboardPage() {
                                     <Users className="w-4 h-4" />
                                     Collaborateurs
                                 </TabsTrigger>
+                                <TabsTrigger value="absences" className="flex items-center gap-2">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    Demandes
+                                </TabsTrigger>
                                 {isSuperAdmin && (
                                     <TabsTrigger value="settings" className="flex items-center gap-2">
                                         <Settings className="w-4 h-4" />
@@ -265,6 +270,10 @@ export default function DashboardPage() {
 
                     <TabsContent value="users" className="animate-in fade-in slide-in-from-bottom-4">
                         <UserManagement />
+                    </TabsContent>
+
+                    <TabsContent value="absences" className="animate-in fade-in slide-in-from-bottom-4">
+                        <AbsenceManagement />
                     </TabsContent>
 
                     <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-4">
