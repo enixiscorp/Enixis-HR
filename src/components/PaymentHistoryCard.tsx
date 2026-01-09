@@ -1,9 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Wallet, FileDown, Table } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { usePayments } from '@/hooks/usePayments'
 import { useCurrency } from '@/contexts/CurrencyContext'
-import { Wallet, Download } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { usePlatformSettings } from '@/hooks/usePlatformSettings'
+import { useCollaborators } from '@/hooks/useCollaborators'
+import { generatePaymentPDF, generatePaymentExcel } from '@/lib/exportUtils'
 
 interface PaymentHistoryCardProps {
     userId: string
@@ -12,6 +15,10 @@ interface PaymentHistoryCardProps {
 export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) {
     const { payments, loading, totalPaid, pendingPayments } = usePayments(userId)
     const { formatCurrency } = useCurrency()
+    const { settings } = usePlatformSettings()
+    const { collaborators } = useCollaborators()
+
+    const currentCollaborator = collaborators.find(c => c.id === userId)
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -115,17 +122,24 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                                         </p>
                                     </div>
                                     {payment.status === 'paid' && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="ml-2"
-                                            onClick={() => {
-                                                // Placeholder for download receipt functionality
-                                                alert('Fonctionnalité de téléchargement à venir')
-                                            }}
-                                        >
-                                            <Download className="w-4 h-4" />
-                                        </Button>
+                                        <div className="flex gap-2 ml-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                title="Exporter en PDF"
+                                                onClick={() => generatePaymentPDF(payment, currentCollaborator, settings?.logo_url)}
+                                            >
+                                                <FileDown className="w-4 h-4 text-purple-600" />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                title="Exporter en Excel"
+                                                onClick={() => generatePaymentExcel(payment, currentCollaborator)}
+                                            >
+                                                <Table className="w-4 h-4 text-green-600" />
+                                            </Button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
