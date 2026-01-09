@@ -50,11 +50,7 @@ export function UserManagement() {
             // In a real app, you'd call a Supabase Edge Function here.
             // For this project, we'll suggest creating in Auth first.
 
-            alert("Accès Administrateur : Veuillez vous assurer que l'utilisateur est déjà créé dans l'onglet 'Authentication' de Supabase avec cet email. Ce formulaire va maintenant configurer son profil Enixis HR.")
-
-            const { data: authUser } = await supabase.from('profiles').select('id').eq('id', formData.email).single(); // This is just a placeholder logic
-
-            // Since we can't create Auth users from client easily (requires service key)
+            // Note: Ad-hoc profile creation (user must exist in auth.users)
             // We will just inform and then insert into profiles if they know the UID
             // Or better: we'll follow the flow that profiles are updated when they first log in,
             // but admins can PRE-CREATE profiles.

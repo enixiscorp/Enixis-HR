@@ -1,7 +1,7 @@
 import { Wallet, FileDown, Table } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { usePayments } from '@/hooks/usePayments'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { usePlatformSettings } from '@/hooks/usePlatformSettings'
@@ -127,7 +127,7 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                                                 variant="outline"
                                                 size="sm"
                                                 title="Exporter en PDF"
-                                                onClick={() => generatePaymentPDF(payment, currentCollaborator, settings?.logo_url)}
+                                                onClick={() => generatePaymentPDF(payment, currentCollaborator, settings?.logo_url || null)}
                                             >
                                                 <FileDown className="w-4 h-4 text-purple-600" />
                                             </Button>
