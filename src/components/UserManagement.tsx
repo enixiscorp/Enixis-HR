@@ -21,21 +21,30 @@ import {
     SelectValue
 } from './ui/select'
 import { Label } from './ui/label'
-import { Users, UserPlus, Shield, ShieldAlert } from 'lucide-react'
+import { Users, UserPlus, Shield, ShieldAlert, Edit2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { UserRole, UserStatus, Profile } from '@/types/database'
 
 export function UserManagement() {
     const { collaborators, loading, refresh } = useCollaborators()
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [selectedUser, setSelectedUser] = useState<Profile | null>(null)
 
-    // Form state
+    // Form state for creation
     const [formData, setFormData] = useState({
-        id: '',
         firstName: '',
         lastName: '',
         email: '',
-        role: 'collaborator' as 'collaborator' | 'admin' | 'super_admin'
+        password: '',
+        role: 'collaborator' as UserRole
+    })
+
+    // Form state for editing
+    const [editData, setEditData] = useState({
+        role: 'collaborator' as UserRole,
+        status: 'active' as UserStatus
     })
 
     const handleCreateUser = async (e: React.FormEvent) => {
@@ -43,187 +52,271 @@ export function UserManagement() {
         setSubmitting(true)
 
         try {
-            // Check if profile already exists for this ID if provided
-            if (formData.id) {
-                const { data: existing } = await supabase.from('profiles').select('id').eq('id', formData.id).single()
-                if (existing) {
-                    alert('Un profil avec cet ID existe déjà.')
-                    setSubmitting(false)
-                    return
-                }
-            }
-
-            const { error } = await supabase.from('profiles').insert({
-                ...(formData.id ? { id: formData.id } : {}),
-                first_name: formData.firstName,
-                last_name: formData.lastName,
-                role: formData.role,
-                status: 'active'
+            const { error } = await supabase.rpc('create_user_admin', {
+                p_email: formData.email,
+                p_password: formData.password,
+                p_first_name: formData.firstName,
+                p_last_name: formData.lastName,
+                p_role: formData.role
             })
 
-            if (error) {
-                if (error.code === '23503') {
-                    throw new Error("L'ID fourni ne correspond à aucun utilisateur dans Supabase Auth. Veuillez d'abord créer l'utilisateur dans l'onglet Authentication.")
-                }
-                throw error
-            }
+            if (error) throw error
 
             setIsCreateDialogOpen(false)
-            setFormData({ id: '', firstName: '', lastName: '', email: '', role: 'collaborator' })
+            setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'collaborator' })
             refresh()
-            alert('Profil créé avec succès !')
+            alert('Compte et profil créés avec succès !')
         } catch (err: any) {
-            console.error('Error creating user profile:', err)
-            alert(err.message || 'Erreur lors de la configuration du profil.')
+            console.error('Error creating user:', err)
+            alert(err.message || 'Erreur lors de la création du compte.')
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const handleEditUser = (user: Profile) => {
+        setSelectedUser(user)
+        setEditData({
+            role: user.role,
+            status: user.status
+        })
+        setIsEditDialogOpen(true)
+    }
+
+    const handleUpdateUser = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!selectedUser) return
+        setSubmitting(true)
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    role: editData.role,
+                    status: editData.status
+                })
+                .eq('id', selectedUser.id)
+
+            if (error) throw error
+
+            setIsEditDialogOpen(false)
+            refresh()
+            alert('Profil mis à jour avec succès !')
+        } catch (err: any) {
+            console.error('Error updating user:', err)
+            alert(err.message || 'Erreur lors de la mise à jour.')
         } finally {
             setSubmitting(false)
         }
     }
 
     return (
-        <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                        <Users className="w-6 h-6 text-purple-600" />
-                        Gestion des Utilisateurs
-                    </CardTitle>
-                    <CardDescription>
-                        Consultez et gérez les comptes des collaborateurs et administrateurs.
-                    </CardDescription>
-                </div>
-
-                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Nouveau Compte
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Créer un nouveau compte</DialogTitle>
-                            <DialogDescription>
-                                Configurez le profil d'un nouveau membre. L'utilisateur doit être préalablement créé dans Supabase Auth.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleCreateUser} className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="id" className="flex items-center gap-2">
-                                    User ID (UID) <span className="text-xs font-normal text-slate-500">(Optionnel - Voir Supabase Auth)</span>
-                                </Label>
-                                <Input
-                                    id="id"
-                                    placeholder="ex: 550e8400-e29b-..."
-                                    value={formData.id}
-                                    onChange={e => setFormData({ ...formData, id: e.target.value })}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="firstName">Prénom</Label>
-                                    <Input
-                                        id="firstName"
-                                        value={formData.firstName}
-                                        onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="lastName">Nom</Label>
-                                    <Input
-                                        id="lastName"
-                                        value={formData.lastName}
-                                        onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="role">Rôle</Label>
-                                <Select
-                                    value={formData.role}
-                                    onValueChange={(val: any) => setFormData({ ...formData, role: val })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Choisir un rôle" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="collaborator">Collaborateur</SelectItem>
-                                        <SelectItem value="admin">Administrateur</SelectItem>
-                                        <SelectItem value="super_admin">Super Administrateur</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <DialogFooter>
-                                <Button type="submit" disabled={submitting}>
-                                    {submitting ? 'Création...' : 'Créer le profil'}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            </CardHeader>
-            <CardContent>
-                {loading ? (
-                    <div className="text-center py-8">Chargement des utilisateurs...</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-slate-200 dark:border-slate-700">
-                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Nom</th>
-                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Rôle</th>
-                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Statut</th>
-                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {collaborators.map(user => (
-                                    <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                        <td className="py-3 px-4">
-                                            <div className="font-medium text-slate-900 dark:text-white">
-                                                {user.first_name} {user.last_name}
-                                            </div>
-                                            <div className="text-xs text-slate-500">ID: {user.id.substring(0, 8)}...</div>
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <div className="flex items-center gap-1">
-                                                {user.role === 'super_admin' ? (
-                                                    <ShieldAlert className="w-4 h-4 text-red-500" />
-                                                ) : user.role === 'admin' ? (
-                                                    <Shield className="w-4 h-4 text-purple-500" />
-                                                ) : (
-                                                    <Users className="w-4 h-4 text-blue-500" />
-                                                )}
-                                                <span className="capitalize text-sm">{user.role.replace('_', ' ')}</span>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
-                                                {user.status === 'active' ? 'Actif' : user.status}
-                                            </Badge>
-                                        </td>
-                                        <td className="py-3 px-4 text-right">
-                                            <Button variant="ghost" size="sm">Éditer</Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+        <div className="space-y-6">
+            <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                            <Users className="w-6 h-6 text-purple-600" />
+                            Gestion des Utilisateurs
+                        </CardTitle>
+                        <CardDescription>
+                            Consultez et gérez les comptes des collaborateurs et administrateurs.
+                        </CardDescription>
                     </div>
-                )}
-            </CardContent>
-        </Card>
+
+                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Nouveau Compte
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-white/10">
+                            <DialogHeader>
+                                <DialogTitle>Créer un nouveau compte</DialogTitle>
+                                <DialogDescription>
+                                    Configurez les accès d'un nouveau membre.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateUser} className="space-y-4 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="firstName">Prénom</Label>
+                                        <Input
+                                            id="firstName"
+                                            value={formData.firstName}
+                                            onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                                            required
+                                            className="bg-white/50 dark:bg-slate-800"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="lastName">Nom</Label>
+                                        <Input
+                                            id="lastName"
+                                            value={formData.lastName}
+                                            onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                                            required
+                                            className="bg-white/50 dark:bg-slate-800"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                        required
+                                        className="bg-white/50 dark:bg-slate-800"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="password">Mot de passe provisoire</Label>
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        value={formData.password}
+                                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                        required
+                                        className="bg-white/50 dark:bg-slate-800"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="role">Rôle</Label>
+                                    <Select
+                                        value={formData.role}
+                                        onValueChange={(val: any) => setFormData({ ...formData, role: val })}
+                                    >
+                                        <SelectTrigger className="bg-white/50 dark:bg-slate-800">
+                                            <SelectValue placeholder="Choisir un rôle" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="collaborator">Collaborateur</SelectItem>
+                                            <SelectItem value="admin">Administrateur</SelectItem>
+                                            <SelectItem value="super_admin">Super Administrateur</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={submitting} className="w-full bg-gradient-to-r from-purple-600 to-pink-600">
+                                        {submitting ? 'Création...' : 'Créer le compte'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </CardHeader>
+                <CardContent>
+                    {loading ? (
+                        <div className="text-center py-8">Chargement des utilisateurs...</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Nom</th>
+                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Rôle</th>
+                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Statut</th>
+                                        <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {collaborators.map(user => (
+                                        <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                            <td className="py-3 px-4">
+                                                <div className="font-medium text-slate-900 dark:text-white">
+                                                    {user.first_name} {user.last_name}
+                                                </div>
+                                                <div className="text-xs text-slate-500">{user.id.substring(0, 8)}...</div>
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <div className="flex items-center gap-1">
+                                                    {user.role === 'super_admin' ? (
+                                                        <ShieldAlert className="w-4 h-4 text-red-500" />
+                                                    ) : user.role === 'admin' ? (
+                                                        <Shield className="w-4 h-4 text-purple-500" />
+                                                    ) : (
+                                                        <Users className="w-4 h-4 text-blue-500" />
+                                                    )}
+                                                    <span className="capitalize text-sm text-slate-700 dark:text-slate-300">
+                                                        {user.role === 'collaborator' ? 'Collaborateur' :
+                                                            user.role === 'admin' ? 'Administrateur' : 'Super Admin'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
+                                                    {user.status === 'active' ? 'Actif' : user.status}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-3 px-4 text-right">
+                                                <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                                                    <Edit2 className="w-4 h-4 mr-1" />
+                                                    Éditer
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Edit Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-white/10">
+                    <DialogHeader>
+                        <DialogTitle>Modifier le profil</DialogTitle>
+                        <DialogDescription>
+                            Modifiez le rôle ou le statut de {selectedUser?.first_name} {selectedUser?.last_name}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateUser} className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-role">Rôle</Label>
+                            <Select
+                                value={editData.role}
+                                onValueChange={(val: any) => setEditData({ ...editData, role: val })}
+                            >
+                                <SelectTrigger className="bg-white/50 dark:bg-slate-800">
+                                    <SelectValue placeholder="Choisir un rôle" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="collaborator">Collaborateur</SelectItem>
+                                    <SelectItem value="admin">Administrateur</SelectItem>
+                                    <SelectItem value="super_admin">Super Administrateur</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-status">Statut</Label>
+                            <Select
+                                value={editData.status}
+                                onValueChange={(val: any) => setEditData({ ...editData, status: val })}
+                            >
+                                <SelectTrigger className="bg-white/50 dark:bg-slate-800">
+                                    <SelectValue placeholder="Choisir un statut" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="active">Actif</SelectItem>
+                                    <SelectItem value="on_leave">En Congé</SelectItem>
+                                    <SelectItem value="suspended">Suspendu</SelectItem>
+                                    <SelectItem value="terminated">Contrat Terminé</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit" disabled={submitting} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                                {submitting ? 'Mise à jour...' : 'Enregistrer les modifications'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </div>
     )
 }

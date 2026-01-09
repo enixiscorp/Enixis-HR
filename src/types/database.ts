@@ -51,6 +51,7 @@ export interface Schedule {
     start_time: string
     end_time: string
     status: ScheduleStatus
+    breaks?: { type: '15' | '30' | '60', time: string }[]
     created_by: string | null
     created_at: string
     updated_at: string
