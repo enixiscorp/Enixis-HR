@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -10,7 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Defensive client creation to prevent silent crashes
-let supabase;
+let supabase: SupabaseClient;
 try {
     if (!supabaseUrl) throw new Error('Supabase URL is required but missing from env.');
     if (!supabaseAnonKey) throw new Error('Supabase Anon Key is required but missing from env.');
