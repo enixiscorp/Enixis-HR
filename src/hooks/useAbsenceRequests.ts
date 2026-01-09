@@ -18,7 +18,7 @@ export function useAbsenceRequests(userId: string | undefined) {
                 setLoading(true)
                 const { data, error } = await supabase
                     .from('absence_requests')
-                    .select('*')
+                    .select('*, profile:profiles!user_id(*)')
                     .eq('user_id', userId)
                     .order('date', { ascending: false })
 

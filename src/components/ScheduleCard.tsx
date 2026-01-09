@@ -4,9 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useSchedules } from '@/hooks/useSchedules'
 import { useAbsenceRequests } from '@/hooks/useAbsenceRequests'
-import { Calendar, Clock, Plus, Edit2, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, Plus, Edit2, AlertCircle, FileDown } from 'lucide-react'
 import { ScheduleDialog } from './ScheduleDialog'
 import { AbsenceRequestDialog } from './AbsenceRequestDialog'
+import { generateAbsencePDF } from '@/lib/exportUtils'
+import { usePlatformSettings } from '@/hooks/usePlatformSettings'
 
 interface ScheduleCardProps {
     userId: string
@@ -16,6 +18,7 @@ interface ScheduleCardProps {
 export default function ScheduleCard({ userId, isEditable = false }: ScheduleCardProps) {
     const { schedules, loading: schedulesLoading, upcomingSchedules } = useSchedules(userId)
     const { requests, loading: requestsLoading } = useAbsenceRequests(userId)
+    const { settings } = usePlatformSettings()
 
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [isAbsenceDialogOpen, setIsAbsenceDialogOpen] = useState(false)
@@ -184,6 +187,17 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
                                                             {request.status === 'pending' ? 'En attente' : request.status === 'approved' ? 'Approuvé' : 'Refusé'}
                                                         </Badge>
                                                     </div>
+                                                    {request.status !== 'pending' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 w-7 p-0"
+                                                            title="Télécharger la confirmation"
+                                                            onClick={() => generateAbsencePDF(request, (request as any).profile, settings)}
+                                                        >
+                                                            <FileDown className="w-3.5 h-3.5 text-slate-500" />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>

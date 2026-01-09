@@ -1,11 +1,13 @@
--- ==========================================
--- STEP 1: EXTENSIONS, ENUMS & TABLES
--- Copy and run this first.
--- ==========================================
+-- =========================================================
+-- ENIXIS HR - RÉPARATION FINALE DE LA BASE DE DONNÉES
+-- =========================================================
 
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- STEP 1 : EXTENSIONS ET SCHÉMAS
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
 
+-- STEP 2 : TYPES ET TABLES
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
@@ -37,19 +39,26 @@ CREATE TABLE IF NOT EXISTS public.absence_requests (
     type absence_type NOT NULL,
     status request_status DEFAULT 'pending',
     reason TEXT,
+    admin_notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     processed_by UUID REFERENCES public.profiles(id),
     processed_at TIMESTAMP WITH TIME ZONE
 );
 
-ALTER TABLE public.absence_requests ENABLE ROW LEVEL SECURITY;
+-- STEP 3 : FONCTIONS DE SÉCURITÉ (INDISPENSABLE)
+-- Cette fonction permet de vérifier le rôle sans créer d'erreurs de cache ou de récursion
+CREATE OR REPLACE FUNCTION public.check_user_role(target_role user_role[])
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = ANY(target_role)
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- ==========================================
--- STEP 2: ACCOUNT CREATION FUNCTION
--- Copy and run this second.
--- ==========================================
-
+-- STEP 4 : CRÉATION DE COMPTE (create_user_admin)
 CREATE OR REPLACE FUNCTION public.create_user_admin(
     p_email TEXT,
     p_first_name TEXT,
@@ -60,15 +69,14 @@ CREATE OR REPLACE FUNCTION public.create_user_admin(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth
-AS $$
+SET search_path = public, auth, extensions
+AS $func$
 DECLARE
     new_user_id UUID;
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM public.profiles 
-        WHERE id = auth.uid() AND role IN ('admin', 'super_admin')
-    ) AND (SELECT count(*) FROM public.profiles) > 0 THEN
+    -- Utilisation de la fonction de sécurité
+    IF NOT public.check_user_role(ARRAY['admin', 'super_admin']::user_role[]) 
+       AND (SELECT count(*) FROM public.profiles) > 0 THEN
         RAISE EXCEPTION 'Unauthorized: Only admins can create users.';
     END IF;
 
@@ -92,18 +100,16 @@ BEGIN
 
     RETURN new_user_id;
 END;
-$$;
+$func$;
 
--- ==========================================
--- STEP 3: PERMISSIONS & POLICIES
--- Copy and run this last.
--- ==========================================
-
+-- STEP 5 : PERMISSIONS ET POLITIQUES RLS
+ALTER TABLE public.absence_requests ENABLE ROW LEVEL SECURITY;
 GRANT ALL ON TABLE public.absence_requests TO authenticated;
 GRANT ALL ON TABLE public.absence_requests TO service_role;
 GRANT EXECUTE ON FUNCTION public.create_user_admin(TEXT, TEXT, TEXT, TEXT, user_role) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.create_user_admin(TEXT, TEXT, TEXT, TEXT, user_role) TO service_role;
 
+-- Politiques pour Absence Requests
 DROP POLICY IF EXISTS "Users view own absences" ON public.absence_requests;
 CREATE POLICY "Users view own absences" ON public.absence_requests FOR SELECT USING (auth.uid() = user_id);
 
@@ -111,25 +117,16 @@ DROP POLICY IF EXISTS "Users create own absences" ON public.absence_requests;
 CREATE POLICY "Users create own absences" ON public.absence_requests FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Admins view all absences" ON public.absence_requests;
-CREATE POLICY "Admins view all absences" ON public.absence_requests FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins view all absences" ON public.absence_requests FOR SELECT USING (public.check_user_role(ARRAY['admin', 'super_admin']::user_role[]));
 
 DROP POLICY IF EXISTS "Admins update absences" ON public.absence_requests;
-CREATE POLICY "Admins update absences" ON public.absence_requests FOR UPDATE USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+CREATE POLICY "Admins update absences" ON public.absence_requests FOR UPDATE USING (public.check_user_role(ARRAY['admin', 'super_admin']::user_role[]));
 
+-- Correction des politiques pour les autres tables
 DO $$ 
 BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'schedules' AND table_schema = 'public') THEN
-        DROP POLICY IF EXISTS "Admins view all schedules" ON public.schedules;
-        CREATE POLICY "Admins view all schedules" ON public.schedules FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
-    END IF;
-
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payments' AND table_schema = 'public') THEN
-        DROP POLICY IF EXISTS "Admins view all payments" ON public.payments;
-        CREATE POLICY "Admins view all payments" ON public.payments FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
-    END IF;
-
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'revenues' AND table_schema = 'public') THEN
-        DROP POLICY IF EXISTS "Admins view all revenues" ON public.revenues;
-        CREATE POLICY "Admins view all revenues" ON public.revenues FOR SELECT USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin')));
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'profiles') THEN
+        DROP POLICY IF EXISTS "Admins and Super Admins can view all profiles" ON public.profiles;
+        CREATE POLICY "Admins and Super Admins can view all profiles" ON public.profiles FOR SELECT USING (id = auth.uid() OR public.check_user_role(ARRAY['admin', 'super_admin']::user_role[]));
     END IF;
 END $$;
