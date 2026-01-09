@@ -23,16 +23,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const fetchProfile = async (userId: string) => {
         try {
+            console.log('Auth: Fetching profile for ID:', userId);
+            // @ts-ignore - Accessing internal URL for debugging purposes
+            console.log('Auth: Supabase Project URL:', supabase.supabaseUrl);
+
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .single()
 
-            if (error) throw error
+            if (error) {
+                console.error('Auth: Profile fetch error:', error);
+                throw error
+            }
+
+            console.log('Auth: Profile loaded successfully:', data.role);
             setProfile(data)
         } catch (error) {
-            console.error('Error fetching profile:', error)
+            console.error('Auth: fetchProfile failed:', error)
             setProfile(null)
         }
     }

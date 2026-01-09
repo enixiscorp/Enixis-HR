@@ -31,6 +31,7 @@ export function UserManagement() {
 
     // Form state
     const [formData, setFormData] = useState({
+        id: '',
         firstName: '',
         lastName: '',
         email: '',
@@ -42,33 +43,38 @@ export function UserManagement() {
         setSubmitting(true)
 
         try {
-            // NOTE: Client-side creation without Edge Functions is limited.
-            // We'll use the 'invite' approach or inform the user.
-            // For now, we'll try to create a profile entry, 
-            // but the user MUST still exist in Auth.
-
-            // In a real app, you'd call a Supabase Edge Function here.
-            // For this project, we'll suggest creating in Auth first.
-
-            // Note: Ad-hoc profile creation (user must exist in auth.users)
-            // We will just inform and then insert into profiles if they know the UID
-            // Or better: we'll follow the flow that profiles are updated when they first log in,
-            // but admins can PRE-CREATE profiles.
+            // Check if profile already exists for this ID if provided
+            if (formData.id) {
+                const { data: existing } = await supabase.from('profiles').select('id').eq('id', formData.id).single()
+                if (existing) {
+                    alert('Un profil avec cet ID existe déjà.')
+                    setSubmitting(false)
+                    return
+                }
+            }
 
             const { error } = await supabase.from('profiles').insert({
+                ...(formData.id ? { id: formData.id } : {}),
                 first_name: formData.firstName,
                 last_name: formData.lastName,
                 role: formData.role,
                 status: 'active'
             })
 
-            if (error) throw error
+            if (error) {
+                if (error.code === '23503') {
+                    throw new Error("L'ID fourni ne correspond à aucun utilisateur dans Supabase Auth. Veuillez d'abord créer l'utilisateur dans l'onglet Authentication.")
+                }
+                throw error
+            }
 
             setIsCreateDialogOpen(false)
+            setFormData({ id: '', firstName: '', lastName: '', email: '', role: 'collaborator' })
             refresh()
-        } catch (err) {
+            alert('Profil créé avec succès !')
+        } catch (err: any) {
             console.error('Error creating user profile:', err)
-            alert('Erreur lors de la configuration du profil. L\'utilisateur doit exister dans Supabase Auth.')
+            alert(err.message || 'Erreur lors de la configuration du profil.')
         } finally {
             setSubmitting(false)
         }
@@ -102,6 +108,17 @@ export function UserManagement() {
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleCreateUser} className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="id" className="flex items-center gap-2">
+                                    User ID (UID) <span className="text-xs font-normal text-slate-500">(Optionnel - Voir Supabase Auth)</span>
+                                </Label>
+                                <Input
+                                    id="id"
+                                    placeholder="ex: 550e8400-e29b-..."
+                                    value={formData.id}
+                                    onChange={e => setFormData({ ...formData, id: e.target.value })}
+                                />
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="firstName">Prénom</Label>
