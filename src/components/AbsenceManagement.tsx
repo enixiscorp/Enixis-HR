@@ -76,9 +76,9 @@ export function AbsenceManagement() {
             })
 
             fetchAllRequests()
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating request status:', error)
-            alert('Erreur lors de la mise à jour')
+            alert(`Erreur lors de la mise à jour : ${error.message || 'Erreur inconnue'}`)
         }
     }
 
