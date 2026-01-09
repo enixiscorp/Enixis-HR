@@ -1,13 +1,30 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Enixis HR</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enixis HR</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    console.log('Index.html: Health check script running...');
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('Index.html: DOMContentLoaded event fired.');
+      if (!document.getElementById('root')) {
+        console.error('Index.html: Root element NOT found in DOM!');
+      } else {
+        console.log('Index.html: Root element found.');
+      }
+    });
+    window.addEventListener('load', () => {
+      console.log('Index.html: Full page load completed.');
+    });
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
