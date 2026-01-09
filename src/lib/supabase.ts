@@ -1,9 +1,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+let supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-console.log('Supabase: Initializing with URL:', supabaseUrl ? `${supabaseUrl.substring(0, 10)}...` : 'MISSING');
+// Auto-correction: If the URL is just a project ID (no http), construct the full URL
+if (supabaseUrl && !supabaseUrl.startsWith('http')) {
+    console.log('Supabase: URL provided seems to be a project ID. Constructing full URL...');
+    supabaseUrl = `https://${supabaseUrl}.supabase.co`;
+}
+
+console.log('Supabase: Initializing with URL:', supabaseUrl ? `${supabaseUrl.substring(0, 15)}...` : 'MISSING');
 
 if (!supabaseUrl || !supabaseAnonKey) {
     console.error('CRITICAL: Missing Supabase environment variables! Check your Vercel settings.');
@@ -19,8 +25,7 @@ try {
     console.log('Supabase: Client created successfully.');
 } catch (error) {
     console.error('Supabase: Failed to create client:', error);
-    // Create a dummy client or null to prevent subsequent crashes, 
-    // but the app will likely be broken anyway.
+    // Create a dummy client to prevent secondary crashes in components
     supabase = createClient('https://placeholder-url.supabase.co', 'placeholder-key');
 }
 
