@@ -9,6 +9,7 @@ import { Building2, Save, Image as ImageIcon, CheckCircle2, Sun, Moon, Monitor }
 
 
 import { MassScheduleEditor } from './MassScheduleEditor'
+import { PaymentReporting } from './PaymentReporting'
 
 export function PlatformSettings() {
     const { settings, updateLogo } = usePlatformSettings()

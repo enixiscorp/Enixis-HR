@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
 import * as XLSX from 'xlsx'
-import { Profile } from '@/types/database'
+
 
 interface PaymentReport {
     collaboratorName: string

@@ -4,7 +4,7 @@ import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { useCollaborators } from '@/hooks/useCollaborators'
 import { supabase } from '@/lib/supabase'
-import { FileText, Download, Filter, FileSpreadsheet, Search } from 'lucide-react'
+import { FileText, Download, FileSpreadsheet, Search } from 'lucide-react'
 import {
     Select,
     SelectContent,
