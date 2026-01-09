@@ -1,23 +1,43 @@
 -- ========================================================
--- Script de Configuration et Diagnostic (v4.5)
+-- Script de Configuration Définitive - Enixis HR (v4.8)
+-- ========================================================
+-- RÉSOLUTION DÉFINITIVE ET CORRECTION SYNTAXIQUE
 -- ========================================================
 
--- 1. Réparation de la structure des tables
-CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    first_name TEXT,
-    last_name TEXT,
-    role TEXT DEFAULT 'collaborator' CHECK (role IN ('collaborator', 'admin', 'super_admin')),
-    status TEXT DEFAULT 'active'
+-- 1. Nettoyage des anciennes politiques
+ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Profiles_Read_All" ON public.profiles;
+DROP POLICY IF EXISTS "Profiles_Update_Self" ON public.profiles;
+DROP POLICY IF EXISTS "Profiles_Super_Admin" ON public.profiles;
+
+-- 2. Activation RLS
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- 3. NOUVELLES POLITIQUES ANTI-RECURSION
+CREATE POLICY "Profiles_Read_All" ON public.profiles
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Profiles_Update_Self" ON public.profiles
+    FOR UPDATE USING (auth.uid() = id);
+
+-- Accès total pour contacteccorp@gmail.com (Via JWT pour éviter la récursion)
+CREATE POLICY "Profiles_Super_Admin" ON public.profiles
+    FOR ALL USING (
+        (auth.jwt() ->> 'email') = 'contacteccorp@gmail.com'
+    );
+
+-- 4. RÉPARATION PLATFORM_SETTINGS
+ALTER TABLE public.platform_settings DISABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Settings_Read" ON public.platform_settings;
+DROP POLICY IF EXISTS "Settings_Admin" ON public.platform_settings;
+ALTER TABLE public.platform_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Settings_Read" ON public.platform_settings FOR SELECT USING (true);
+CREATE POLICY "Settings_Admin" ON public.platform_settings FOR ALL USING (
+    (auth.jwt() ->> 'email') = 'contacteccorp@gmail.com'
 );
 
-CREATE TABLE IF NOT EXISTS public.platform_settings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    logo_url TEXT,
-    platform_name TEXT DEFAULT 'Enixis HR'
-);
-
--- 2. Activation du Super Admin par Email
+-- 5. Activation Super Admin
 DO $$
 DECLARE
     target_id UUID;
@@ -31,26 +51,15 @@ BEGIN
     END IF;
 END $$;
 
--- 3. Initialisation Settings
+-- 6. Initialisation Settings
 INSERT INTO public.platform_settings (platform_name)
-SELECT 'Enixis HR' WHERE NOT EXISTS (SELECT 1 FROM platform_settings);
+SELECT 'Enixis HR' WHERE NOT EXISTS (SELECT 1 FROM public.platform_settings);
 
--- 4. VERIFICATION FINALE (Indispensable pour voir si ça a marché)
--- Le résultat s'affichera dans l'onglet "Results" (Tableau)
+-- 7. VERIFICATION (Correction de l'ambiguité 'role')
 SELECT 
-    'UTILISATEUR' as type,
-    email, 
-    id as uid,
-    'Present dans Auth' as status
-FROM auth.users 
-WHERE email = 'contacteccorp@gmail.com'
-
-UNION ALL
-
-SELECT 
-    'PROFIL' as type,
-    '---' as email,
-    id as uid,
-    role || ' - ' || status as status
-FROM public.profiles 
-WHERE id = (SELECT id FROM auth.users WHERE email = 'contacteccorp@gmail.com');
+    u.email, 
+    p.role as profile_role, 
+    p.id as profile_id 
+FROM public.profiles p 
+JOIN auth.users u ON p.id = u.id 
+WHERE u.email = 'contacteccorp@gmail.com';
