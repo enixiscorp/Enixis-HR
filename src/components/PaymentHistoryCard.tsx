@@ -114,6 +114,11 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                                                 {getStatusLabel(payment.status)}
                                             </Badge>
                                         </div>
+                                        {payment.description && (
+                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                                {payment.description}
+                                            </p>
+                                        )}
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
                                             <div className="flex items-center gap-1">
                                                 <Calendar className="w-3 h-3" />
