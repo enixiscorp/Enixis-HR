@@ -10,6 +10,13 @@ export interface Payment {
     status: 'pending' | 'paid' | 'failed'
     created_by: string | null
     created_at: string
+    profiles?: {
+        first_name: string
+        last_name: string
+        email: string
+        role: string
+        avatar_url: string | null
+    }
 }
 
 export function usePayments(userId: string | undefined) {
@@ -18,19 +25,19 @@ export function usePayments(userId: string | undefined) {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        if (!userId) {
-            setLoading(false)
-            return
-        }
-
         const fetchPayments = async () => {
             try {
                 setLoading(true)
-                const { data, error } = await supabase
+                let query = supabase
                     .from('payments')
-                    .select('*')
-                    .eq('user_id', userId)
+                    .select('*, profiles:user_id(first_name, last_name, email, role, avatar_url)')
                     .order('payment_date', { ascending: false })
+
+                if (userId) {
+                    query = query.eq('user_id', userId)
+                }
+
+                const { data, error } = await query
 
                 if (error) throw error
                 setPayments(data || [])

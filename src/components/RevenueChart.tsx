@@ -120,46 +120,58 @@ export function RevenueChart({ data, title = "Évolution du Revenu", description
             <CardContent>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#9333ea" stopOpacity={0.3} />
+                                    <stop offset="5%" stopColor="#9333ea" stopOpacity={0.6} />
                                     <stop offset="95%" stopColor="#9333ea" stopOpacity={0} />
                                 </linearGradient>
+                                <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stopColor="#9333ea" />
+                                    <stop offset="100%" stopColor="#db2777" />
+                                </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.5} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.3} />
                             <XAxis
                                 dataKey="label"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#64748b', fontSize: 12 }}
-                                dy={10}
+                                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
+                                dy={15}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#64748b', fontSize: 12 }}
-                                tickFormatter={(value: number) => `${value}`}
+                                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
+                                tickFormatter={(value: number) => value >= 1000 ? `${(value / 1000).toFixed(k)}k` : `${value}`}
+                                dx={-5}
                             />
                             <Tooltip
+                                cursor={{ stroke: '#9333ea', strokeWidth: 2, strokeDasharray: '5 5' }}
                                 contentStyle={{
-                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                    backdropFilter: 'blur(8px)',
-                                    borderRadius: '12px',
-                                    border: '1px solid rgba(226, 232, 240, 0.8)',
-                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    backdropFilter: 'blur(12px)',
+                                    borderRadius: '16px',
+                                    border: '1px solid rgba(147, 51, 234, 0.1)',
+                                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                                    padding: '12px 16px'
                                 }}
-                                formatter={(value: number) => [formatCurrency(value), 'Revenu']}
-                                labelStyle={{ color: '#1e293b', fontWeight: '600', marginBottom: '4px' }}
+                                formatter={(value: number) => [
+                                    <span className="font-bold text-slate-900">{formatCurrency(value)}</span>,
+                                    <span className="text-purple-600 font-semibold">Revenu</span>
+                                ]}
+                                labelStyle={{ color: '#64748b', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}
                             />
                             <Area
                                 type="monotone"
                                 dataKey="amount"
-                                stroke="#9333ea"
-                                strokeWidth={3}
+                                stroke="url(#lineGradient)"
+                                strokeWidth={4}
                                 fillOpacity={1}
                                 fill="url(#colorAmount)"
-                                animationDuration={1500}
+                                animationDuration={2000}
+                                animationEasing="ease-in-out"
+                                activeDot={{ r: 8, strokeWidth: 0, fill: '#9333ea' }}
                             />
                         </AreaChart>
                     </ResponsiveContainer>

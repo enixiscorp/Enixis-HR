@@ -40,8 +40,8 @@ export function Sidebar({
     return (
         <aside
             className={cn(
-                "fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl",
-                isHovered ? "w-64" : "w-20"
+                "fixed left-0 top-0 h-full z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50 shadow-2xl",
+                isHovered ? "w-64" : "w-16"
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}

@@ -25,6 +25,7 @@ import { Users, UserPlus, Shield, ShieldAlert, Edit2, Trash2, AlertCircle } from
 import { supabase } from '@/lib/supabase'
 import { UserRole, UserStatus, Profile } from '@/types/database'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 
 export function UserManagement() {
     const { profile: currentAdmin } = useAuth()
@@ -49,6 +50,7 @@ export function UserManagement() {
         status: 'active' as UserStatus
     })
 
+    const { toast } = useToast()
     const isSuperAdmin = currentAdmin?.role === 'super_admin'
 
     const handleCreateUser = async (e: React.FormEvent) => {
@@ -69,10 +71,10 @@ export function UserManagement() {
             setIsCreateDialogOpen(false)
             setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'collaborator' })
             refresh()
-            alert('Compte et profil créés avec succès !')
+            toast('Compte et profil créés avec succès !', 'success')
         } catch (err: any) {
             console.error('Error creating user:', err)
-            alert(err.message || 'Erreur lors de la création du compte.')
+            toast(err.message || 'Erreur lors de la création du compte.', 'error')
         } finally {
             setSubmitting(false)
         }
@@ -105,10 +107,10 @@ export function UserManagement() {
 
             setIsEditDialogOpen(false)
             refresh()
-            alert('Profil mis à jour avec succès !')
+            toast('Profil mis à jour avec succès !', 'success')
         } catch (err: any) {
             console.error('Error updating user:', err)
-            alert(err.message || 'Erreur lors de la mise à jour.')
+            toast(err.message || 'Erreur lors de la mise à jour.', 'error')
         } finally {
             setSubmitting(false)
         }
@@ -116,12 +118,12 @@ export function UserManagement() {
 
     const handleDeleteUser = async (user: Profile) => {
         if (user.role === 'super_admin') {
-            alert('Impossible de supprimer un Super Administrateur.')
+            toast('Impossible de supprimer un Super Administrateur.', 'warning')
             return
         }
 
         if (user.role === 'admin' && !isSuperAdmin) {
-            alert('Seul un Super Administrateur peut supprimer un compte Administrateur.')
+            toast('Seul un Super Administrateur peut supprimer un compte Administrateur.', 'warning')
             return
         }
 
@@ -137,10 +139,10 @@ export function UserManagement() {
             if (error) throw error
 
             refresh()
-            alert('Utilisateur supprimé avec succès.')
+            toast('Utilisateur supprimé avec succès.', 'success')
         } catch (err: any) {
             console.error('Error deleting user:', err)
-            alert(err.message || 'Erreur lors de la suppression.')
+            toast(err.message || 'Erreur lors de la suppression.', 'error')
         } finally {
             setSubmitting(false)
         }
