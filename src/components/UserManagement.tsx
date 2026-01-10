@@ -21,11 +21,13 @@ import {
     SelectValue
 } from './ui/select'
 import { Label } from './ui/label'
-import { Users, UserPlus, Shield, ShieldAlert, Edit2 } from 'lucide-react'
+import { Users, UserPlus, Shield, ShieldAlert, Edit2, Trash2, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { UserRole, UserStatus, Profile } from '@/types/database'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function UserManagement() {
+    const { profile: currentAdmin } = useAuth()
     const { collaborators, loading, refresh } = useCollaborators()
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -46,6 +48,8 @@ export function UserManagement() {
         role: 'collaborator' as UserRole,
         status: 'active' as UserStatus
     })
+
+    const isSuperAdmin = currentAdmin?.role === 'super_admin'
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -110,8 +114,50 @@ export function UserManagement() {
         }
     }
 
+    const handleDeleteUser = async (user: Profile) => {
+        if (user.role === 'super_admin') {
+            alert('Impossible de supprimer un Super Administrateur.')
+            return
+        }
+
+        if (user.role === 'admin' && !isSuperAdmin) {
+            alert('Seul un Super Administrateur peut supprimer un compte Administrateur.')
+            return
+        }
+
+        const confirmed = window.confirm(`Êtes-vous sûr de vouloir supprimer ${user.first_name} ${user.last_name} ? Cette action est irréversible.`)
+        if (!confirmed) return
+
+        setSubmitting(true)
+        try {
+            const { error } = await supabase.rpc('delete_user_admin', {
+                p_user_id: user.id
+            })
+
+            if (error) throw error
+
+            refresh()
+            alert('Utilisateur supprimé avec succès.')
+        } catch (err: any) {
+            console.error('Error deleting user:', err)
+            alert(err.message || 'Erreur lors de la suppression.')
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
     return (
         <div className="space-y-6">
+            {/* Super Admin Notice */}
+            {isSuperAdmin && (
+                <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-3 text-purple-800 shadow-sm animate-in fade-in slide-in-from-top-4">
+                    <ShieldAlert className="w-5 h-5 flex-shrink-0" />
+                    <p className="text-xs font-medium">
+                        Mode Super Admin : Vous avez le contrôle total sur les Administrateurs et Collaborateurs.
+                    </p>
+                </div>
+            )}
+
             <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
@@ -126,7 +172,7 @@ export function UserManagement() {
 
                     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
                                 <UserPlus className="w-4 h-4 mr-2" />
                                 Nouveau Compte
                             </Button>
@@ -222,7 +268,7 @@ export function UserManagement() {
                                                 <div className="font-bold text-slate-900 dark:text-white">
                                                     {user.first_name} {user.last_name}
                                                 </div>
-                                                <div className="text-[10px] text-slate-500">{user.id}</div>
+                                                <div className="text-[10px] text-slate-500">{user.id.substring(0, 8)}...</div>
                                             </div>
                                             <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
                                                 {user.status === 'active' ? 'Actif' : user.status}
@@ -242,10 +288,22 @@ export function UserManagement() {
                                                         user.role === 'admin' ? 'Administrateur' : 'Super Admin'}
                                                 </span>
                                             </div>
-                                            <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)} className="h-8 px-2">
-                                                <Edit2 className="w-3 h-3 mr-1" />
-                                                Éditer
-                                            </Button>
+                                            <div className="flex gap-2">
+                                                <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)} className="h-8 px-2">
+                                                    <Edit2 className="w-3 h-3 mr-1" />
+                                                    Éditer
+                                                </Button>
+                                                {user.role !== 'super_admin' && (isSuperAdmin || user.role === 'collaborator') && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDeleteUser(user)}
+                                                        className="h-8 px-2 text-red-500 hover:text-red-600 hover:bg-red-50/10"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -264,7 +322,7 @@ export function UserManagement() {
                                     </thead>
                                     <tbody>
                                         {collaborators.map(user => (
-                                            <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                            <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                                 <td className="py-3 px-4">
                                                     <div className="font-medium text-slate-900 dark:text-white">
                                                         {user.first_name} {user.last_name}
@@ -292,10 +350,22 @@ export function UserManagement() {
                                                     </Badge>
                                                 </td>
                                                 <td className="py-3 px-4 text-right">
-                                                    <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
-                                                        <Edit2 className="w-4 h-4 mr-1" />
-                                                        Éditer
-                                                    </Button>
+                                                    <div className="flex justify-end gap-1">
+                                                        <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                                                            <Edit2 className="w-4 h-4 mr-1 text-slate-600" />
+                                                            Éditer
+                                                        </Button>
+                                                        {user.role !== 'super_admin' && (isSuperAdmin || user.role === 'collaborator') && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleDeleteUser(user)}
+                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -319,19 +389,26 @@ export function UserManagement() {
                     <form onSubmit={handleUpdateUser} className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor="edit-role">Rôle</Label>
-                            <Select
-                                value={editData.role}
-                                onValueChange={(val: any) => setEditData({ ...editData, role: val })}
-                            >
-                                <SelectTrigger className="bg-white/50 dark:bg-slate-800">
-                                    <SelectValue placeholder="Choisir un rôle" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="collaborator">Collaborateur</SelectItem>
-                                    <SelectItem value="admin">Administrateur</SelectItem>
-                                    <SelectItem value="super_admin">Super Administrateur</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            {selectedUser?.role === 'super_admin' && !isSuperAdmin ? (
+                                <div className="p-3 rounded-lg bg-orange-50 border border-orange-200 flex items-center gap-2 text-orange-800">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <span className="text-xs">Profil Super Admin protégé.</span>
+                                </div>
+                            ) : (
+                                <Select
+                                    value={editData.role}
+                                    onValueChange={(val: any) => setEditData({ ...editData, role: val })}
+                                >
+                                    <SelectTrigger className="bg-white/50 dark:bg-slate-800">
+                                        <SelectValue placeholder="Choisir un rôle" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="collaborator">Collaborateur</SelectItem>
+                                        <SelectItem value="admin">Administrateur</SelectItem>
+                                        <SelectItem value="super_admin">Super Administrateur</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="edit-status">Statut</Label>
