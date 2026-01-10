@@ -20,7 +20,7 @@ export type ScheduleStatus = 'scheduled' | 'completed' | 'cancelled'
 
 export type PaymentType = 'weekly' | 'biweekly' | 'monthly'
 
-export type PaymentStatus = 'pending' | 'paid' | 'failed'
+export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refused'
 
 export interface Profile {
     id: string

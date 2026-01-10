@@ -25,6 +25,7 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
     const [selectedPrestation, setSelectedPrestation] = useState<string>('')
     const [commission, setCommission] = useState<string>('')
     const [paymentDate, setPaymentDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'))
+    const [status, setStatus] = useState<'paid' | 'pending' | 'refused'>('paid')
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
 
@@ -61,7 +62,7 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
                 description: prestationLabel,
                 payment_date: paymentDate,
                 payment_type: 'monthly' as const,
-                status: 'paid' as const,
+                status: status,
                 created_by: currentUser?.id
             }))
 
@@ -142,7 +143,7 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Date de paiement</Label>
+                        <Label>Date de prestation</Label>
                         <div className="relative">
                             <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <Input
@@ -152,6 +153,20 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
                                 onChange={(e) => setPaymentDate(e.target.value)}
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Statut initial</Label>
+                        <Select value={status} onValueChange={(val: any) => setStatus(val)}>
+                            <SelectTrigger className="h-11 bg-white/50 dark:bg-slate-900/50">
+                                <SelectValue placeholder="Choisir un statut" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="paid">Payé ✅</SelectItem>
+                                <SelectItem value="pending">En attente ⏳</SelectItem>
+                                <SelectItem value="refused">Refusé ❌</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
 

@@ -7,7 +7,7 @@ export interface Payment {
     amount: number
     payment_date: string
     payment_type: 'weekly' | 'biweekly' | 'monthly'
-    status: 'pending' | 'paid' | 'failed'
+    status: 'pending' | 'paid' | 'failed' | 'refused'
     description: string | null
     created_by: string | null
     created_at: string

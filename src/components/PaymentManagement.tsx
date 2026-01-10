@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Button } from './ui/button'
+import { Badge } from './ui/badge'
 import { RevenueChart } from './RevenueChart'
 import { MassPaymentEditor } from './MassPaymentEditor'
 import { useRevenues } from '@/hooks/useRevenues'
 import { usePayments, Payment } from '@/hooks/usePayments'
+import { PaymentStatus } from '@/types/database'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { useToast } from '@/contexts/ToastContext'
 import {
@@ -15,7 +17,9 @@ import {
     Search,
     Loader2,
     Calendar as CalendarIcon,
-    DollarSign
+    DollarSign,
+    CheckCircle2,
+    XCircle
 } from 'lucide-react'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
@@ -62,11 +66,27 @@ export function PaymentManagement() {
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
+    const handleStatusUpdate = async (paymentId: string, newStatus: string) => {
+        try {
+            const { error } = await supabase
+                .from('payments')
+                .update({ status: newStatus as any })
+                .eq('id', paymentId)
+
+            if (error) throw error
+            toast(`Statut mis à jour : ${newStatus === 'paid' ? 'Payé' : 'Refusé'}`, 'success')
+        } catch (err: any) {
+            console.error('Error updating status:', err)
+            toast('Erreur lors du changement de statut.', 'error')
+        }
+    }
+
     // Edit form state
     const [editAmount, setEditAmount] = useState('')
     const [editType, setEditType] = useState<any>('')
     const [editDate, setEditDate] = useState('')
     const [editDescription, setEditDescription] = useState('')
+    const [editStatus, setEditStatus] = useState<PaymentStatus>('pending')
 
     const handleSendEmail = (payment: Payment) => {
         const name = payment.profiles ? `${payment.profiles.first_name} ${payment.profiles.last_name}` : 'Collaborateur'
@@ -81,6 +101,7 @@ export function PaymentManagement() {
         setEditType(payment.payment_type)
         setEditDate(payment.payment_date)
         setEditDescription(payment.description || '')
+        setEditStatus(payment.status)
         setIsEditing(true)
     }
 
@@ -96,7 +117,8 @@ export function PaymentManagement() {
                     amount: Number(editAmount),
                     payment_type: editType,
                     payment_date: editDate,
-                    description: editDescription
+                    description: editDescription,
+                    status: editStatus
                 })
                 .eq('id', selectedPayment.id)
 
@@ -196,6 +218,7 @@ export function PaymentManagement() {
                                         <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
                                             <th className="py-4 px-2 font-semibold">Collaborateur</th>
                                             <th className="py-4 px-2 font-semibold">Prestation</th>
+                                            <th className="py-4 px-2 font-semibold text-center">Statut</th>
                                             <th className="py-4 px-2 font-semibold text-center">Date</th>
                                             <th className="py-4 px-2 font-semibold text-right">Commission</th>
                                             <th className="py-4 px-2 font-semibold text-center">Actions</th>
@@ -225,13 +248,30 @@ export function PaymentManagement() {
                                                         {payment.description || 'Paiement standard'}
                                                     </p>
                                                 </td>
+                                                <td className="py-4 px-2">
+                                                    <div className="flex justify-center">
+                                                        {payment.status === 'paid' ? (
+                                                            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] uppercase font-bold">
+                                                                Payé
+                                                            </Badge>
+                                                        ) : payment.status === 'refused' ? (
+                                                            <Badge className="bg-red-500/10 text-red-600 border-red-200 text-[10px] uppercase font-bold">
+                                                                Refusé
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-[10px] uppercase font-bold">
+                                                                En attente
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </td>
                                                 <td className="py-4 px-2 text-center">
                                                     <div className="flex flex-col items-center">
                                                         <span className="text-slate-900 dark:text-white text-sm font-medium">
                                                             {format(new Date(payment.payment_date), 'dd MMM yyyy', { locale: fr })}
                                                         </span>
                                                         <span className="text-[10px] text-slate-500">
-                                                            {format(new Date(payment.payment_date), 'EEEE', { locale: fr })}
+                                                            Prestation
                                                         </span>
                                                     </div>
                                                 </td>
@@ -243,15 +283,39 @@ export function PaymentManagement() {
                                                 <td className="py-4 px-2">
                                                     <div className="flex items-center justify-center gap-1">
                                                         {isAdmin && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 w-8 p-0 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                                                                onClick={() => handleEditClick(payment)}
-                                                                title="Éditer"
-                                                            >
-                                                                <Edit2 className="w-4 h-4" />
-                                                            </Button>
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 w-8 p-0 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                                                                    onClick={() => handleEditClick(payment)}
+                                                                    title="Éditer"
+                                                                >
+                                                                    <Edit2 className="w-4 h-4" />
+                                                                </Button>
+                                                                {payment.status !== 'paid' && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-8 w-8 p-0 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                                                        onClick={() => handleStatusUpdate(payment.id, 'paid')}
+                                                                        title="Confirmer le paiement"
+                                                                    >
+                                                                        <CheckCircle2 className="w-4 h-4" />
+                                                                    </Button>
+                                                                )}
+                                                                {payment.status !== 'refused' && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-8 w-8 p-0 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                        onClick={() => handleStatusUpdate(payment.id, 'refused')}
+                                                                        title="Refuser le paiement"
+                                                                    >
+                                                                        <XCircle className="w-4 h-4" />
+                                                                    </Button>
+                                                                )}
+                                                            </>
                                                         )}
                                                         <Button
                                                             variant="ghost"
@@ -355,6 +419,20 @@ export function PaymentManagement() {
                                         <SelectItem value="weekly">Hebdomadaire</SelectItem>
                                         <SelectItem value="biweekly">Bimensuel</SelectItem>
                                         <SelectItem value="monthly">Mensuel</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="status" className="text-xs font-bold uppercase text-slate-500">Statut</Label>
+                                <Select value={editStatus} onValueChange={(val: any) => setEditStatus(val)}>
+                                    <SelectTrigger className="h-11 bg-slate-50 dark:bg-slate-800/50">
+                                        <SelectValue placeholder="Choisir un statut" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="paid">Payé ✅</SelectItem>
+                                        <SelectItem value="pending">En attente ⏳</SelectItem>
+                                        <SelectItem value="refused">Refusé ❌</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
