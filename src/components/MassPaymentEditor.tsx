@@ -32,7 +32,7 @@ const PRESTATIONS = [
     { id: 'semi_pro_system', label: '💻 Système semi-professionnel (Web/PC)' },
 ]
 
-export function MassPaymentEditor() {
+export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
     const { collaborators, loading: loadingCollabs } = useCollaborators()
     const { user: currentUser } = useAuth()
 
@@ -98,10 +98,17 @@ export function MassPaymentEditor() {
     return (
         <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
             <CardHeader>
-                <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                    <Users className="w-5 h-5 text-purple-500" />
-                    Paiement en Masse
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                        <Users className="w-5 h-5 text-purple-500" />
+                        Paiement en Masse
+                    </CardTitle>
+                    {onCancel && (
+                        <Button variant="outline" size="sm" onClick={onCancel} className="text-slate-500 border-white/20">
+                            Annuler
+                        </Button>
+                    )}
+                </div>
                 <CardDescription>
                     Enregistrez une commission pour une prestation spécifique pour plusieurs collaborateurs.
                 </CardDescription>

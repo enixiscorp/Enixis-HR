@@ -63,6 +63,7 @@ export function PaymentManagement() {
     const [editAmount, setEditAmount] = useState('')
     const [editType, setEditType] = useState<any>('')
     const [editDate, setEditDate] = useState('')
+    const [editDescription, setEditDescription] = useState('')
 
     const handleSendEmail = (payment: Payment) => {
         const name = payment.profiles ? `${payment.profiles.first_name} ${payment.profiles.last_name}` : 'Collaborateur'
@@ -76,6 +77,7 @@ export function PaymentManagement() {
         setEditAmount(payment.amount.toString())
         setEditType(payment.payment_type)
         setEditDate(payment.payment_date)
+        setEditDescription(payment.description || '')
         setIsEditing(true)
     }
 
@@ -90,7 +92,8 @@ export function PaymentManagement() {
                 .update({
                     amount: Number(editAmount),
                     payment_type: editType,
-                    payment_date: editDate
+                    payment_date: editDate,
+                    description: editDescription
                 })
                 .eq('id', selectedPayment.id)
 
@@ -140,7 +143,7 @@ export function PaymentManagement() {
             />
 
             {isMassPaying ? (
-                <MassPaymentEditor />
+                <MassPaymentEditor onCancel={() => setIsMassPaying(false)} />
             ) : (
                 <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg border border-slate-200/50 dark:border-slate-800/50">
                     <CardHeader>
@@ -300,7 +303,36 @@ export function PaymentManagement() {
                     <form onSubmit={handleUpdatePayment} className="space-y-6 py-4">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="amount" className="text-xs font-bold uppercase text-slate-500">Montant</Label>
+                                <Label htmlFor="prestation" className="text-xs font-bold uppercase text-slate-500">Prestation</Label>
+                                <Select value={editDescription} onValueChange={setEditDescription}>
+                                    <SelectTrigger className="h-11 bg-slate-50 dark:bg-slate-800/50">
+                                        <SelectValue placeholder="Choisir une prestation" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="support_procedures">🛠 Procédures Support</SelectItem>
+                                        <SelectItem value="project_procedures">🔍 Procédures Projets</SelectItem>
+                                        <SelectItem value="cv_creation">✍️ Création CV + Lettre</SelectItem>
+                                        <SelectItem value="cv_optimisation">✍️ Optimisation CV</SelectItem>
+                                        <SelectItem value="partnership_letters">🤝 Partenariat/Sponsoring</SelectItem>
+                                        <SelectItem value="linkedin_branding">🧑‍💼 Personal Branding</SelectItem>
+                                        <SelectItem value="coaching_emploi">🎓 Coaching Emploi</SelectItem>
+                                        <SelectItem value="productivity">🚀 Booster Productivité</SelectItem>
+                                        <SelectItem value="excel_analytics">📊 Analyse Excel</SelectItem>
+                                        <SelectItem value="ai_training">🤖 Formation IA</SelectItem>
+                                        <SelectItem value="office_suite">💼 Suite Office</SelectItem>
+                                        <SelectItem value="marketing_strategy">📈 Marketing & Stratégie</SelectItem>
+                                        <SelectItem value="simple_sheet">📄 Excel/Sheets Simple</SelectItem>
+                                        <SelectItem value="dashboard_file">📊 Tableaux de Bord</SelectItem>
+                                        <SelectItem value="erp_ai">🔗 ERP/IA</SelectItem>
+                                        <SelectItem value="custom_app">📱 App Personnalisée</SelectItem>
+                                        <SelectItem value="website_creation">🌐 Site Web</SelectItem>
+                                        <SelectItem value="semi_pro_system">💻 Système Semi-pro</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="amount" className="text-xs font-bold uppercase text-slate-500">Montant (CFA)</Label>
                                 <div className="relative">
                                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <Input
