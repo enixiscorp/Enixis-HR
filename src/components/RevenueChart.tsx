@@ -143,7 +143,7 @@ export function RevenueChart({ data, title = "Évolution du Revenu", description
                                 axisLine={false}
                                 tickLine={false}
                                 tick={{ fill: '#64748b', fontSize: 11, fontWeight: 500 }}
-                                tickFormatter={(value: number) => value >= 1000 ? `${(value / 1000).toFixed(k)}k` : `${value}`}
+                                tickFormatter={(value: number) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : `${value}`}
                                 dx={-5}
                             />
                             <Tooltip
@@ -156,10 +156,13 @@ export function RevenueChart({ data, title = "Évolution du Revenu", description
                                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                                     padding: '12px 16px'
                                 }}
-                                formatter={(value: number) => [
-                                    <span className="font-bold text-slate-900">{formatCurrency(value)}</span>,
-                                    <span className="text-purple-600 font-semibold">Revenu</span>
-                                ]}
+                                formatter={(value: number | string | (number | string)[] | undefined) => {
+                                    const numValue = typeof value === 'number' ? value : 0;
+                                    return [
+                                        <span className="font-bold text-slate-900">{formatCurrency(numValue)}</span>,
+                                        <span className="text-purple-600 font-semibold">Revenu</span>
+                                    ];
+                                }}
                                 labelStyle={{ color: '#64748b', fontSize: '12px', fontWeight: '500', marginBottom: '8px' }}
                             />
                             <Area

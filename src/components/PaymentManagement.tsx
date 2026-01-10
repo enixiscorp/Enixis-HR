@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Button } from './ui/button'
 import { RevenueChart } from './RevenueChart'
 import { MassPaymentEditor } from './MassPaymentEditor'
-import { useCollaborators } from '@/hooks/useCollaborators'
 import { useRevenues } from '@/hooks/useRevenues'
 import { usePayments, Payment } from '@/hooks/usePayments'
 import { useCurrency } from '@/contexts/CurrencyContext'
@@ -42,6 +41,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 export function PaymentManagement() {
     const { profile } = useAuth()

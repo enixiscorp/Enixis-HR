@@ -11,7 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import StatsCard from '@/components/StatsCard'
 import RevenueCard from '@/components/RevenueCard'
 import ScheduleCard from '@/components/ScheduleCard'
@@ -20,14 +20,10 @@ import { CollaboratorSelect } from '@/components/CollaboratorSelect'
 import { UserManagement } from '@/components/UserManagement'
 import { PlatformSettings } from '@/components/PlatformSettings'
 import {
-    LogOut,
     DollarSign,
     Calendar,
     Wallet,
     Users,
-    Building2,
-    Settings,
-    LayoutDashboard,
     AlertTriangle
 } from 'lucide-react'
 import { useRevenues } from '@/hooks/useRevenues'

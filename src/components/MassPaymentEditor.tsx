@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -142,8 +142,8 @@ export function MassPaymentEditor() {
                             <div
                                 key={c.id}
                                 className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${selectedUsers.includes(c.id)
-                                        ? "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
-                                        : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                                    ? "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
+                                    : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                                     }`}
                                 onClick={() => toggleUser(c.id)}
                             >
