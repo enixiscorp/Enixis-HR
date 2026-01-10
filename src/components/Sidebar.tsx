@@ -6,7 +6,8 @@ import {
     Settings,
     DollarSign,
     LogOut,
-    Building2
+    Building2,
+    Package
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +35,7 @@ export function Sidebar({
         { id: 'users', label: 'Collaborateurs', icon: Users, show: isAdmin },
         { id: 'payments', label: 'Paiements', icon: DollarSign, show: true },
         { id: 'absences', label: 'Demandes', icon: AlertTriangle, show: isAdmin },
+        { id: 'prestations', label: 'Services', icon: Package, show: isAdmin },
         { id: 'settings', label: 'Configuration', icon: Settings, show: isSuperAdmin },
     ]
 

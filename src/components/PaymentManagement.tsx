@@ -41,10 +41,12 @@ import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { usePrestations } from '@/hooks/usePrestations'
 
 export function PaymentManagement() {
     const { profile } = useAuth()
     const { settings } = usePlatformSettings()
+    const { prestations, loading: loadingPrestations } = usePrestations()
     const { formatCurrency } = useCurrency()
     const { toast } = useToast()
 
@@ -316,27 +318,14 @@ export function PaymentManagement() {
                                 <Label htmlFor="prestation" className="text-xs font-bold uppercase text-slate-500">Prestation</Label>
                                 <Select value={editDescription} onValueChange={setEditDescription}>
                                     <SelectTrigger className="h-11 bg-slate-50 dark:bg-slate-800/50">
-                                        <SelectValue placeholder="Choisir une prestation" />
+                                        <SelectValue placeholder={loadingPrestations ? "Chargement..." : "Choisir une prestation"} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="support_procedures">🛠 Procédures Support</SelectItem>
-                                        <SelectItem value="project_procedures">🔍 Procédures Projets</SelectItem>
-                                        <SelectItem value="cv_creation">✍️ Création CV + Lettre</SelectItem>
-                                        <SelectItem value="cv_optimisation">✍️ Optimisation CV</SelectItem>
-                                        <SelectItem value="partnership_letters">🤝 Partenariat/Sponsoring</SelectItem>
-                                        <SelectItem value="linkedin_branding">🧑‍💼 Personal Branding</SelectItem>
-                                        <SelectItem value="coaching_emploi">🎓 Coaching Emploi</SelectItem>
-                                        <SelectItem value="productivity">🚀 Booster Productivité</SelectItem>
-                                        <SelectItem value="excel_analytics">📊 Analyse Excel</SelectItem>
-                                        <SelectItem value="ai_training">🤖 Formation IA</SelectItem>
-                                        <SelectItem value="office_suite">💼 Suite Office</SelectItem>
-                                        <SelectItem value="marketing_strategy">📈 Marketing & Stratégie</SelectItem>
-                                        <SelectItem value="simple_sheet">📄 Excel/Sheets Simple</SelectItem>
-                                        <SelectItem value="dashboard_file">📊 Tableaux de Bord</SelectItem>
-                                        <SelectItem value="erp_ai">🔗 ERP/IA</SelectItem>
-                                        <SelectItem value="custom_app">📱 App Personnalisée</SelectItem>
-                                        <SelectItem value="website_creation">🌐 Site Web</SelectItem>
-                                        <SelectItem value="semi_pro_system">💻 Système Semi-pro</SelectItem>
+                                        {prestations.map((p) => (
+                                            <SelectItem key={p.id} value={p.name}>
+                                                {p.name} ({formatCurrency(p.price)})
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>

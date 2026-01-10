@@ -31,6 +31,7 @@ import { useSchedules } from '@/hooks/useSchedules'
 import { usePayments } from '@/hooks/usePayments'
 import { currencies } from '@/constants/currencies'
 import { AbsenceManagement } from '@/components/AbsenceManagement'
+import { PrestationManagement } from '@/components/PrestationManagement'
 import { Sidebar } from '@/components/Sidebar'
 import { PaymentManagement } from '@/components/PaymentManagement'
 
@@ -237,6 +238,10 @@ export default function DashboardPage() {
 
                         <TabsContent value="absences" className="animate-in fade-in slide-in-from-bottom-4">
                             <AbsenceManagement />
+                        </TabsContent>
+
+                        <TabsContent value="prestations" className="animate-in fade-in slide-in-from-bottom-4">
+                            <PrestationManagement />
                         </TabsContent>
 
                         <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-4">

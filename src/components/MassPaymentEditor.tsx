@@ -11,31 +11,15 @@ import { Checkbox } from './ui/checkbox'
 import { Badge } from './ui/badge'
 import { Loader2, DollarSign, Users, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react'
 import { format } from 'date-fns'
+import { usePrestations } from '@/hooks/usePrestations'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
-const PRESTATIONS = [
-    { id: 'support_procedures', label: '🛠 Optimisation de Procédures Support Client' },
-    { id: 'project_procedures', label: '🔍 Optimisation de Procédures Projets' },
-    { id: 'cv_creation', label: '✍️ Création de CV sur mesure + Lettre' },
-    { id: 'cv_optimisation', label: '✍️ Optimisation de CV sur mesure' },
-    { id: 'partnership_letters', label: '🤝 Rédaction Demandes Partenariat/Sponsoring' },
-    { id: 'linkedin_branding', label: '🧑‍💼 Personal Branding & LinkedIn' },
-    { id: 'coaching_emploi', label: '🎓 Formation Coaching Emploi' },
-    { id: 'productivity', label: '🚀 Formation Booster la productivité' },
-    { id: 'excel_analytics', label: '📊 Formation Analyse de données via Excel' },
-    { id: 'ai_training', label: '🤖 Formation IA' },
-    { id: 'office_suite', label: '💼 Formation Optimisée Suite Office' },
-    { id: 'marketing_strategy', label: '📈 Optimisation de Procédures Marketing & Stratégie' },
-    { id: 'simple_sheet', label: '📄 Système Excel ou Google Sheets simple' },
-    { id: 'dashboard_file', label: '📊 Système Fichier automatisé avec tableaux de bord' },
-    { id: 'erp_ai', label: '🔗 Intégration et Automatisations ERP/IA' },
-    { id: 'custom_app', label: '📱 Système d\'Application personnalisée (Web/App)' },
-    { id: 'website_creation', label: '🌐 Création de Site Web' },
-    { id: 'semi_pro_system', label: '💻 Système semi-professionnel (Web/PC)' },
-]
 
 export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
     const { collaborators, loading: loadingCollabs } = useCollaborators()
     const { user: currentUser } = useAuth()
+    const { prestations, loading: loadingPrestations } = usePrestations()
+    const { formatCurrency } = useCurrency()
 
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [selectedPrestation, setSelectedPrestation] = useState<string>('')
@@ -66,7 +50,8 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
             return
         }
 
-        const prestationLabel = PRESTATIONS.find(p => p.id === selectedPrestation)?.label || selectedPrestation
+        const prestation = prestations.find(p => p.id === selectedPrestation)
+        const prestationLabel = prestation?.name || selectedPrestation
 
         setLoading(true)
         try {
@@ -121,14 +106,21 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-2 lg:col-span-2">
                         <Label>Prestation réalisée</Label>
-                        <Select value={selectedPrestation} onValueChange={setSelectedPrestation}>
+                        <Select
+                            value={selectedPrestation}
+                            onValueChange={(val) => {
+                                setSelectedPrestation(val)
+                                const p = prestations.find(pre => pre.id === val)
+                                if (p) setCommission(p.price.toString())
+                            }}
+                        >
                             <SelectTrigger className="h-11 bg-white/50 dark:bg-slate-900/50">
-                                <SelectValue placeholder="Choisir une prestation..." />
+                                <SelectValue placeholder={loadingPrestations ? "Chargement..." : "Choisir une prestation..."} />
                             </SelectTrigger>
                             <SelectContent className="max-h-[300px]">
-                                {PRESTATIONS.map((p) => (
+                                {prestations.filter(p => p.is_active).map((p) => (
                                     <SelectItem key={p.id} value={p.id}>
-                                        {p.label}
+                                        {p.name} ({formatCurrency(p.price)})
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -166,7 +158,7 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
                         <Label className="text-base font-semibold">
-                            Sélectionner les bénéficiaires ({selectedUsers.length})
+                            Bénéficiaires (Collaborateurs & Admins) ({selectedUsers.length})
                         </Label>
                         <Button variant="ghost" size="sm" onClick={toggleAll} className="text-purple-600 hover:text-purple-700">
                             {selectedUsers.length === collaborators.length ? "Tout désélectionner" : "Tout sélectionner"}
