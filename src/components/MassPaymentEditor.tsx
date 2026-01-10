@@ -8,6 +8,7 @@ import { useCollaborators } from '@/hooks/useCollaborators'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { Checkbox } from './ui/checkbox'
+import { Badge } from './ui/badge'
 import { Loader2, DollarSign, Users, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -102,6 +103,9 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
                     <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <Users className="w-5 h-5 text-purple-500" />
                         Paiement en Masse
+                        <Badge variant="outline" className="ml-2 bg-purple-500/10 text-purple-600 border-purple-200 text-[10px] uppercase tracking-wider">
+                            Mode Création
+                        </Badge>
                     </CardTitle>
                     {onCancel && (
                         <Button variant="outline" size="sm" onClick={onCancel} className="text-slate-500 border-white/20">

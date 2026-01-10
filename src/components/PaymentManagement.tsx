@@ -40,6 +40,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 export function PaymentManagement() {
     const { profile } = useAuth()
@@ -128,9 +129,18 @@ export function PaymentManagement() {
                 {isAdmin && (
                     <Button
                         onClick={() => setIsMassPaying(!isMassPaying)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white gap-2 transition-all hover:scale-105"
+                        className={cn(
+                            "gap-2 transition-all hover:scale-105 shadow-lg",
+                            isMassPaying
+                                ? "bg-slate-800 hover:bg-slate-900 text-white"
+                                : "bg-purple-600 hover:bg-purple-700 text-white"
+                        )}
                     >
-                        {isMassPaying ? "Voir l'Historique" : <><Plus className="w-4 h-4" /> Paiement en Masse</>}
+                        {isMassPaying ? (
+                            <>Retour à l'Historique</>
+                        ) : (
+                            <><Plus className="w-4 h-4" /> Paiement en Masse</>
+                        )}
                     </Button>
                 )}
             </div>
