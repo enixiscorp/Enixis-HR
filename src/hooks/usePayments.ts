@@ -8,6 +8,7 @@ export interface Payment {
     payment_date: string
     payment_type: 'weekly' | 'biweekly' | 'monthly'
     status: 'pending' | 'paid' | 'failed'
+    description: string | null
     created_by: string | null
     created_at: string
     profiles?: {
@@ -30,7 +31,7 @@ export function usePayments(userId: string | undefined) {
                 setLoading(true)
                 let query = supabase
                     .from('payments')
-                    .select('*, profiles:user_id(first_name, last_name, email, role, avatar_url)')
+                    .select('*, profiles:user_id(first_name, last_name, email, role, avatar_url), description')
                     .order('payment_date', { ascending: false })
 
                 if (userId) {

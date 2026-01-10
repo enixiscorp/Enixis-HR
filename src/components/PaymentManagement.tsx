@@ -18,7 +18,6 @@ import {
     DollarSign
 } from 'lucide-react'
 import { Input } from './ui/input'
-import { Badge } from './ui/badge'
 import { Label } from './ui/label'
 import {
     Select,
@@ -41,7 +40,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
 
 export function PaymentManagement() {
     const { profile } = useAuth()
@@ -182,9 +180,9 @@ export function PaymentManagement() {
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
                                             <th className="py-4 px-2 font-semibold">Collaborateur</th>
+                                            <th className="py-4 px-2 font-semibold">Prestation</th>
                                             <th className="py-4 px-2 font-semibold text-center">Date</th>
-                                            <th className="py-4 px-2 font-semibold text-center">Type</th>
-                                            <th className="py-4 px-2 font-semibold text-right">Montant</th>
+                                            <th className="py-4 px-2 font-semibold text-right">Commission</th>
                                             <th className="py-4 px-2 font-semibold text-center">Actions</th>
                                         </tr>
                                     </thead>
@@ -207,6 +205,11 @@ export function PaymentManagement() {
                                                         </div>
                                                     </div>
                                                 </td>
+                                                <td className="py-4 px-2">
+                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 max-w-[200px] truncate" title={payment.description || 'Paiement standard'}>
+                                                        {payment.description || 'Paiement standard'}
+                                                    </p>
+                                                </td>
                                                 <td className="py-4 px-2 text-center">
                                                     <div className="flex flex-col items-center">
                                                         <span className="text-slate-900 dark:text-white text-sm font-medium">
@@ -216,20 +219,6 @@ export function PaymentManagement() {
                                                             {format(new Date(payment.payment_date), 'EEEE', { locale: fr })}
                                                         </span>
                                                     </div>
-                                                </td>
-                                                <td className="py-4 px-2 text-center">
-                                                    <Badge
-                                                        variant="outline"
-                                                        className={cn(
-                                                            "text-[10px] capitalize font-semibold tracking-wide border-0 px-2.5 py-0.5",
-                                                            payment.payment_type === 'monthly' ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20" :
-                                                                payment.payment_type === 'biweekly' ? "bg-amber-50 text-amber-600 dark:bg-amber-900/20" :
-                                                                    "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20"
-                                                        )}
-                                                    >
-                                                        {payment.payment_type === 'monthly' ? 'Mensuel' :
-                                                            payment.payment_type === 'biweekly' ? 'Bimensuel' : 'Hebdo'}
-                                                    </Badge>
                                                 </td>
                                                 <td className="py-4 px-2 text-right">
                                                     <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">

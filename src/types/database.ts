@@ -64,6 +64,7 @@ export interface Payment {
     payment_date: string
     payment_type: PaymentType
     status: PaymentStatus
+    description?: string | null
     created_by: string | null
     created_at: string
 }
