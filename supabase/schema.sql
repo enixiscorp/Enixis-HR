@@ -7,7 +7,7 @@ create type user_status as enum ('active', 'on_leave', 'sick_leave', 'personal_e
 create type period_type as enum ('daily', 'monthly', 'quarterly', 'yearly');
 create type schedule_status as enum ('scheduled', 'completed', 'cancelled');
 create type payment_type as enum ('weekly', 'biweekly', 'monthly');
-create type payment_status as enum ('pending', 'paid', 'failed');
+create type payment_status as enum ('pending', 'paid', 'failed', 'refused');
 
 -- Profiles table (extends auth.users)
 create table profiles (
