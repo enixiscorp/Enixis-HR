@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { RevenueChart } from './RevenueChart'
-import { MassPaymentEditor } from './MassPaymentEditor'
 import { PaymentReporting } from './PaymentReporting'
 import { PaymentImporter } from './PaymentImporter'
 import { PaymentImportRow } from '@/lib/paymentImportUtils'
@@ -156,7 +155,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
         setIsEditing(true)
     }
 
-    const handleUpdatePayment = async (e: React.FormEvent) => {
+    const handleUpdatePayment = async () => {
         // ... (previous content kept, just adding handleImportComplete after it)
     }
 

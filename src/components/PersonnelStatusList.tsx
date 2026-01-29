@@ -8,7 +8,7 @@ import { Button } from './ui/button'
 import { ChatDialog } from './ChatDialog'
 import { useNextWorkDay } from '@/hooks/useNextWorkDay'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
-import { format, differenceInMinutes } from 'date-fns'
+import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 interface PersonnelStatusListProps {
