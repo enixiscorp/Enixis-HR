@@ -125,4 +125,19 @@ INSERT INTO prestations (name, price, is_active)
 SELECT '💻 Système semi-professionnel (Web/PC)', 100000, FALSE
 WHERE NOT EXISTS (SELECT 1 FROM prestations WHERE name = '💻 Système semi-professionnel (Web/PC)');
 
+
+-- 4. Ensure 'breaks' column exists in schedules (Fix for schedule error)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'schedules'
+        AND column_name = 'breaks'
+    ) THEN
+        ALTER TABLE schedules ADD COLUMN breaks JSONB DEFAULT '[]'::jsonb;
+        RAISE NOTICE 'Added "breaks" column to schedules table';
+    END IF;
+END $$;
+
 COMMIT;

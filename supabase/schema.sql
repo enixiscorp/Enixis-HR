@@ -41,6 +41,7 @@ create table schedules (
   start_time time not null,
   end_time time not null,
   status schedule_status default 'scheduled',
+  breaks jsonb default '[]'::jsonb,
   created_by uuid references profiles(id),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null

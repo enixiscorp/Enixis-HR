@@ -36,7 +36,7 @@ interface PaymentRow {
 
 export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
     const { user: currentUser } = useAuth()
-    const { profiles } = useProfiles()
+    const { profiles, loading: loadingProfiles } = useProfiles()
     const { prestations } = usePrestations()
     const { toast } = useToast()
     const { formatCurrency } = useCurrency()
@@ -269,26 +269,47 @@ export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
                             1. Sélectionnez les bénéficiaires
                         </Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                            {collaboratorsAndAdmins.map((profile: any) => (
-                                <div
-                                    key={profile.id}
-                                    className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
-                                >
-                                    <Checkbox
-                                        checked={selectedUserIds.includes(profile.id)}
-                                        onCheckedChange={() => handleUserToggle(profile.id)}
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
-                                            {profile.first_name} {profile.last_name}
-                                        </p>
-                                        <p className="text-xs text-slate-500 truncate">{profile.email}</p>
-                                    </div>
+                            {loadingProfiles ? (
+                                <div className="col-span-full py-8 flex flex-col items-center text-slate-500">
+                                    <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-2" />
+                                    <p className="text-sm">Chargement des collaborateurs...</p>
                                 </div>
-                            ))}
+                            ) : collaboratorsAndAdmins.length === 0 ? (
+                                <div className="col-span-full py-8 text-center text-slate-500 text-sm">
+                                    Aucun collaborateur trouvé.
+                                </div>
+                            ) : (
+                                collaboratorsAndAdmins.map((profile: any) => (
+                                    <div
+                                        key={profile.id}
+                                        onClick={() => handleUserToggle(profile.id)}
+                                        className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${selectedUserIds.includes(profile.id)
+                                            ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 dark:border-purple-500 shadow-sm'
+                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600'
+                                            }`}
+                                    >
+                                        <Checkbox
+                                            checked={selectedUserIds.includes(profile.id)}
+                                            onCheckedChange={() => handleUserToggle(profile.id)}
+                                            className="pointer-events-none" // let the parent div handle click
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
+                                                {profile.first_name} {profile.last_name}
+                                            </p>
+                                            <p className="text-xs text-slate-500 truncate">{profile.email}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
-                        <p className="text-xs text-slate-500">
-                            {selectedUserIds.length} bénéficiaire(s) sélectionné(s)
+                        <p className="text-xs text-slate-500 flex justify-between">
+                            <span>{selectedUserIds.length} bénéficiaire(s) sélectionné(s)</span>
+                            {selectedUserIds.length > 0 && (
+                                <button onClick={() => setSelectedUserIds([])} className="text-purple-600 hover:underline">
+                                    Tout désélectionner
+                                </button>
+                            )}
                         </p>
                     </div>
 
