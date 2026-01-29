@@ -47,25 +47,50 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { usePrestations } from '@/hooks/usePrestations'
+import { ReportGenerator } from '@/lib/ReportGenerator'
 
 export function PaymentManagement() {
-    const { profile } = useAuth()
-    const { settings } = usePlatformSettings()
-    const { prestations, loading: loadingPrestations } = usePrestations()
-    const { formatCurrency } = useCurrency()
-    const { toast } = useToast()
-
+    const { user, profile } = useAuth()
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
-    const { revenues } = useRevenues(isAdmin ? undefined : profile?.id)
-    const { payments, loading: paymentsLoading } = usePayments(isAdmin ? undefined : profile?.id)
+    const { payments, loading: paymentsLoading, error, refresh } = usePayments(undefined)
+    const { userRevenues, loading: revenuesLoading } = useRevenues(undefined)
+    const { toast } = useToast()
+    const { formatCurrency } = useCurrency()
+    const { settings } = usePlatformSettings() // For logo in PDF
 
-    const chartData = revenues.map(r => ({ date: r.date, amount: Number(r.amount) }))
-
-    const [searchTerm, setSearchTerm] = useState('')
     const [isMassPaying, setIsMassPaying] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
-    const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
+
+    // Dialog & Edit states
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [editingPayment, setEditingPayment] = useState<Payment | null>(null)
+    const [formData, setFormData] = useState({
+        amount: '',
+        description: '',
+        status: 'pending' as PaymentStatus,
+        payment_date: new Date().toISOString().split('T')[0]
+    })
     const [submitting, setSubmitting] = useState(false)
+
+    const handleExportPending = async () => {
+        const pendingPayments = payments.filter(p => p.status === 'pending')
+        if (pendingPayments.length === 0) {
+            toast('Aucun paiement en attente à exporter.', 'info')
+            return
+        }
+
+        const data = pendingPayments.map(p => ({
+            date: p.payment_date,
+            collaboratorName: `${p.profiles?.first_name || ''} ${p.profiles?.last_name || ''}`,
+            period: 'N/A',
+            amount: p.amount,
+            status: 'En attente'
+        }))
+
+        await ReportGenerator.generateExcel('Paiements_En_Attente', data)
+        toast(`${data.length} paiements exportés avec succès.`, 'success')
+    }
 
     const handleStatusUpdate = async (paymentId: string, newStatus: string) => {
         try {

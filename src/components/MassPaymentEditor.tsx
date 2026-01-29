@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Button } from './ui/button'
-import { Badge } from './ui/badge'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
+import { Checkbox } from './ui/checkbox'
 import {
     Select,
     SelectContent,
@@ -11,500 +11,282 @@ import {
     SelectTrigger,
     SelectValue
 } from './ui/select'
-import { Checkbox } from './ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfiles } from '@/hooks/useProfiles'
 import { usePrestations } from '@/hooks/usePrestations'
-import { supabase } from '@/lib/supabase'
 import { useToast } from '@/contexts/ToastContext'
 import { useCurrency } from '@/contexts/CurrencyContext'
-import { DollarSign, Upload, Edit3, Trash2, CheckCircle2 } from 'lucide-react'
-import { format } from 'date-fns'
-import { PaymentImporter } from './PaymentImporter'
-import { PaymentImportRow } from '@/lib/paymentImportUtils'
+import { supabase } from '@/lib/supabase'
+import { Users, Banknote, Calendar, CheckCircle2, Save, X, Search, Loader2 } from 'lucide-react'
 
-interface PaymentRow {
-    userId: string
-    userName: string
-    userEmail: string
-    prestationId: string
-    prestationName: string
-    amount: number
-    date: string
-    status: 'paid' | 'pending' | 'refused'
-}
-
-export function MassPaymentEditor({ onCancel }: { onCancel?: () => void }) {
+export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
     const { user: currentUser } = useAuth()
     const { profiles, loading: loadingProfiles } = useProfiles()
-    const { prestations } = usePrestations()
+    const { prestations, loading: loadingPrestations } = usePrestations()
     const { toast } = useToast()
     const { formatCurrency } = useCurrency()
 
-    const [mode, setMode] = useState<'select' | 'manual' | 'import'>('select')
-    const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([])
-    const [loading, setLoading] = useState(false)
-    const [success, setSuccess] = useState(false)
-
-    // For manual mode - selected users
     const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+    const [selectedPrestationId, setSelectedPrestationId] = useState<string>('')
+    const [status, setStatus] = useState<'pending' | 'paid' | 'refused'>('paid')
+    const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0])
+    const [saving, setSaving] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
 
-    const collaboratorsAndAdmins = profiles.filter((p: any) =>
-        p.role === 'collaborator' || p.role === 'admin' || p.role === 'super_admin'
+    // Filter collaborators and admins (beneficiaries)
+    const beneficiaries = profiles.filter(p =>
+        (p.role === 'collaborator' || p.role === 'admin' || p.role === 'super_admin') &&
+        (p.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.email.toLowerCase().includes(searchTerm.toLowerCase()))
     )
 
-    const handleUserToggle = (userId: string) => {
+    const handleUserToggle = (id: string) => {
         setSelectedUserIds(prev =>
-            prev.includes(userId)
-                ? prev.filter(id => id !== userId)
-                : [...prev, userId]
+            prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]
         )
     }
 
-    const handleStartManualMode = () => {
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedUserIds(beneficiaries.map(p => p.id))
+        } else {
+            setSelectedUserIds([])
+        }
+    }
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault()
         if (selectedUserIds.length === 0) {
-            toast('Veuillez sélectionner au moins un collaborateur', 'error')
+            toast('Veuillez sélectionner au moins un bénéficiaire', 'error')
+            return
+        }
+        if (!selectedPrestationId) {
+            toast('Veuillez sélectionner une prestation', 'error')
             return
         }
 
-        const newRows: PaymentRow[] = selectedUserIds.map(userId => {
-            const user = profiles.find((p: any) => p.id === userId)
-            return {
-                userId,
-                userName: `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
-                userEmail: user?.email || '',
-                prestationId: '',
-                prestationName: '',
-                amount: 0,
-                date: format(new Date(), 'yyyy-MM-dd'),
-                status: 'paid' as const
-            }
-        })
+        const selectedPrestation = prestations.find(p => p.id === selectedPrestationId)
+        if (!selectedPrestation) return
 
-        setPaymentRows(newRows)
-        setMode('manual')
-    }
-
-    const handleUpdateRow = (index: number, field: keyof PaymentRow, value: any) => {
-        setPaymentRows(prev => {
-            const updated = [...prev]
-            updated[index] = { ...updated[index], [field]: value }
-
-            // Auto-fill amount when prestation changes
-            if (field === 'prestationId') {
-                const prestation = prestations.find(p => p.id === value)
-                if (prestation) {
-                    updated[index].prestationName = prestation.name
-                    updated[index].amount = prestation.price
-                }
-            }
-
-            return updated
-        })
-    }
-
-    const handleRemoveRow = (index: number) => {
-        setPaymentRows(prev => prev.filter((_, i) => i !== index))
-    }
-
-    const handleImportComplete = async (importedData: PaymentImportRow[]) => {
-        // Convert imported data to payment rows
-        const rows: PaymentRow[] = []
-        const errors: string[] = []
-
-        for (const row of importedData) {
-            // Find user by email
-            const user = profiles.find(p => p.email.toLowerCase() === row.email.toLowerCase())
-            if (!user) {
-                errors.push(`Utilisateur introuvable: ${row.email}`)
-                continue
-            }
-
-            // Find prestation by name
-            const prestation = prestations.find((p: any) =>
-                p.name.toLowerCase() === row.prestation.toLowerCase()
-            )
-            if (!prestation) {
-                errors.push(`Prestation introuvable: ${row.prestation} (pour ${row.email})`)
-                continue
-            }
-
-            rows.push({
-                userId: user.id,
-                userName: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-                userEmail: user.email,
-                prestationId: prestation.id,
-                prestationName: prestation.name,
-                amount: row.montant,
-                date: row.date_prestation,
-                status: row.statut || 'paid'
-            })
-        }
-
-        if (errors.length > 0) {
-            toast(`Import bloqué - ${errors.length} erreur(s) détectée(s)`, 'error')
-            console.error('Import errors:', errors)
-            return
-        }
-
-        setPaymentRows(rows)
-        setMode('manual')
-        toast(`${rows.length} paiement(s) importé(s) avec succès`, 'success')
-    }
-
-    const handleSubmitPayments = async () => {
-        // Validate all rows
-        const invalidRows = paymentRows.filter(row =>
-            !row.prestationId || row.amount <= 0 || !row.date
-        )
-
-        if (invalidRows.length > 0) {
-            toast('Certaines lignes sont incomplètes', 'error')
-            return
-        }
-
-        setLoading(true)
-
+        setSaving(true)
         try {
-            // Check for existing payments (same user + date + prestation)
-            const { data: existingPayments } = await supabase
-                .from('payments')
-                .select('id, user_id, payment_date, description')
+            const payments = selectedUserIds.map(userId => ({
+                user_id: userId,
+                amount: selectedPrestation.price,
+                payment_date: paymentDate,
+                payment_type: 'monthly', // Default to monthly
+                status: status,
+                description: selectedPrestation.name,
+                created_by: currentUser?.id
+            }))
 
-            const paymentsToInsert = []
-            const paymentsToUpdate = []
+            const { error } = await supabase.from('payments').insert(payments)
+            if (error) throw error
 
-            for (const row of paymentRows) {
-                const existing = existingPayments?.find(p =>
-                    p.user_id === row.userId &&
-                    p.payment_date === row.date &&
-                    p.description === row.prestationName
-                )
-
-                const paymentData = {
-                    user_id: row.userId,
-                    amount: row.amount,
-                    description: row.prestationName,
-                    payment_date: row.date,
-                    payment_type: 'monthly' as const,
-                    status: row.status,
-                    created_by: currentUser?.id
-                }
-
-                if (existing) {
-                    paymentsToUpdate.push({ id: existing.id, ...paymentData })
-                } else {
-                    paymentsToInsert.push(paymentData)
-                }
-            }
-
-            // Insert new payments
-            if (paymentsToInsert.length > 0) {
-                const { error: insertError } = await supabase
-                    .from('payments')
-                    .insert(paymentsToInsert)
-
-                if (insertError) throw insertError
-            }
-
-            // Update existing payments
-            for (const payment of paymentsToUpdate) {
-                const { id, ...updateData } = payment
-                const { error: updateError } = await supabase
-                    .from('payments')
-                    .update(updateData)
-                    .eq('id', id)
-
-                if (updateError) throw updateError
-            }
-
-            setSuccess(true)
-            toast(
-                `${paymentsToInsert.length} paiement(s) créé(s), ${paymentsToUpdate.length} mis à jour`,
-                'success'
-            )
-
-            setTimeout(() => {
-                setSuccess(false)
-                setMode('select')
-                setPaymentRows([])
-                setSelectedUserIds([])
-                onCancel?.()
-            }, 2000)
-
+            toast(`${payments.length} paiements créés avec succès`, 'success')
+            onCancel()
         } catch (err: any) {
             console.error('Error creating payments:', err)
-            toast('Erreur lors de la création des paiements', 'error')
+            toast(err.message || 'Erreur lors de la création', 'error')
         } finally {
-            setLoading(false)
+            setSaving(false)
         }
     }
 
-    // Mode Selection Screen
-    if (mode === 'select') {
-        return (
-            <Card className="border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl shadow-2xl">
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    Paiement en Masse
-                                </CardTitle>
-                                <Badge className="bg-purple-500/10 text-purple-600 border-purple-200 text-xs uppercase font-bold">
-                                    Mode Création
-                                </Badge>
-                            </div>
-                            <CardDescription>
-                                Choisissez votre méthode de création de paiements
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
+    const selectedPrestationData = prestations.find(p => p.id === selectedPrestationId)
 
-                <CardContent className="space-y-6">
-                    {/* User Selection */}
-                    <div className="space-y-3">
-                        <Label className="text-sm font-bold uppercase text-slate-500">
-                            1. Sélectionnez les bénéficiaires
-                        </Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                            {loadingProfiles ? (
-                                <div className="col-span-full py-8 flex flex-col items-center text-slate-500">
-                                    <div className="w-6 h-6 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-2" />
-                                    <p className="text-sm">Chargement des collaborateurs...</p>
-                                </div>
-                            ) : collaboratorsAndAdmins.length === 0 ? (
-                                <div className="col-span-full py-8 text-center text-slate-500 text-sm">
-                                    Aucun collaborateur trouvé.
-                                </div>
-                            ) : (
-                                collaboratorsAndAdmins.map((profile: any) => (
-                                    <div
-                                        key={profile.id}
-                                        onClick={() => handleUserToggle(profile.id)}
-                                        className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${selectedUserIds.includes(profile.id)
-                                            ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 dark:border-purple-500 shadow-sm'
-                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600'
-                                            }`}
-                                    >
-                                        <Checkbox
-                                            checked={selectedUserIds.includes(profile.id)}
-                                            onCheckedChange={() => handleUserToggle(profile.id)}
-                                            className="pointer-events-none" // let the parent div handle click
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
-                                                {profile.first_name} {profile.last_name}
-                                            </p>
-                                            <p className="text-xs text-slate-500 truncate">{profile.email}</p>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <p className="text-xs text-slate-500 flex justify-between">
-                            <span>{selectedUserIds.length} bénéficiaire(s) sélectionné(s)</span>
-                            {selectedUserIds.length > 0 && (
-                                <button onClick={() => setSelectedUserIds([])} className="text-purple-600 hover:underline">
-                                    Tout désélectionner
-                                </button>
-                            )}
-                        </p>
-                    </div>
-
-                    {/* Mode Selection */}
-                    <div className="space-y-3">
-                        <Label className="text-sm font-bold uppercase text-slate-500">
-                            2. Choisissez la méthode
-                        </Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Button
-                                onClick={handleStartManualMode}
-                                disabled={selectedUserIds.length === 0}
-                                className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                            >
-                                <Edit3 className="w-8 h-8" />
-                                <div>
-                                    <p className="font-bold">Saisie Manuelle</p>
-                                    <p className="text-xs opacity-90">Éditer les bonus un par un</p>
-                                </div>
-                            </Button>
-
-                            <Button
-                                onClick={() => setMode('import')}
-                                className="h-auto py-6 flex-col gap-3 bg-gradient-to-br from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
-                            >
-                                <Upload className="w-8 h-8" />
-                                <div>
-                                    <p className="font-bold">Import de Fichier</p>
-                                    <p className="text-xs opacity-90">Excel, CSV ou PDF</p>
-                                </div>
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
-                        <Button variant="outline" onClick={onCancel}>
-                            Annuler
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-        )
-    }
-
-    // Import Mode
-    if (mode === 'import') {
-        return (
-            <PaymentImporter
-                onImportComplete={handleImportComplete}
-                onCancel={() => setMode('select')}
-            />
-        )
-    }
-
-    // Manual/Editing Mode
     return (
-        <Card className="border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl shadow-2xl">
+        <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg border border-purple-500/30">
             <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between items-start">
                     <div>
-                        <div className="flex items-center gap-2">
-                            <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
-                                Édition des Paiements
-                            </CardTitle>
-                            <Badge className="bg-green-500/10 text-green-600 border-green-200 text-xs uppercase font-bold">
-                                {paymentRows.length} Paiement(s)
-                            </Badge>
-                        </div>
+                        <CardTitle className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                            <Banknote className="w-6 h-6 text-purple-600" />
+                            Paiement de Masse
+                        </CardTitle>
                         <CardDescription>
-                            Configurez les prestations et montants pour chaque bénéficiaire
+                            Créez rapidement des paiements pour plusieurs collaborateurs.
                         </CardDescription>
                     </div>
+                    <Button variant="ghost" size="icon" onClick={onCancel}>
+                        <X className="w-5 h-5" />
+                    </Button>
                 </div>
             </CardHeader>
+            <CardContent>
+                <form onSubmit={handleSave} className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* LEFT: Beneficiary Selection */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-lg font-semibold flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-purple-500" />
+                                    Bénéficiaires ({selectedUserIds.length})
+                                </Label>
+                                <div className="flex items-center gap-2">
+                                    <Checkbox
+                                        id="select-all"
+                                        checked={beneficiaries.length > 0 && selectedUserIds.length === beneficiaries.length}
+                                        onCheckedChange={handleSelectAll}
+                                    />
+                                    <Label htmlFor="select-all" className="cursor-pointer">Tout cocher</Label>
+                                </div>
+                            </div>
 
-            <CardContent className="space-y-6">
-                {/* Payment Rows Table */}
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead className="bg-slate-100 dark:bg-slate-800">
-                            <tr>
-                                <th className="p-3 text-left font-semibold">Bénéficiaire</th>
-                                <th className="p-3 text-left font-semibold">Prestation</th>
-                                <th className="p-3 text-right font-semibold">Montant</th>
-                                <th className="p-3 text-center font-semibold">Date</th>
-                                <th className="p-3 text-center font-semibold">Statut</th>
-                                <th className="p-3 text-center font-semibold">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                            {paymentRows.map((row, index) => (
-                                <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                    <td className="p-3">
-                                        <div>
-                                            <p className="font-medium text-slate-900 dark:text-white">
-                                                {row.userName}
-                                            </p>
-                                            <p className="text-xs text-slate-500">{row.userEmail}</p>
-                                        </div>
-                                    </td>
-                                    <td className="p-3">
-                                        <Select
-                                            value={row.prestationId}
-                                            onValueChange={(val) => handleUpdateRow(index, 'prestationId', val)}
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                    placeholder="Rechercher..."
+                                    className="pl-9 bg-white/50 dark:bg-slate-800"
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 h-[400px] overflow-y-auto p-2 space-y-2">
+                                {loadingProfiles ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
+                                        <Loader2 className="w-8 h-8 animate-spin mb-2" />
+                                        Chargement...
+                                    </div>
+                                ) : beneficiaries.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
+                                        Aucun bénéficiaire trouvé via la recherche.
+                                    </div>
+                                ) : (
+                                    beneficiaries.map(profile => (
+                                        <div
+                                            key={profile.id}
+                                            onClick={() => handleUserToggle(profile.id)}
+                                            className={`
+                                                flex items-center gap-3 p-3 rounded-md cursor-pointer border transition-all
+                                                ${selectedUserIds.includes(profile.id)
+                                                    ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 shadow-sm'
+                                                    : 'bg-white dark:bg-slate-800 border-transparent hover:border-slate-300 dark:hover:border-slate-600'}
+                                            `}
                                         >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Choisir..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {prestations.map(p => (
+                                            <Checkbox
+                                                checked={selectedUserIds.includes(profile.id)}
+                                                onCheckedChange={() => handleUserToggle(profile.id)}
+                                                className="pointer-events-none"
+                                            />
+                                            <div className="flex-1 overflow-hidden">
+                                                <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
+                                                    {profile.first_name} {profile.last_name}
+                                                </p>
+                                                <p className="text-xs text-slate-500 truncate">{profile.email}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Payment Details */}
+                        <div className="space-y-6">
+                            <div className="space-y-4 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                <Label className="text-lg font-semibold flex items-center gap-2">
+                                    <CheckCircle2 className="w-5 h-5 text-purple-500" />
+                                    Détails du Paiement
+                                </Label>
+
+                                {/* Prestation Selection */}
+                                <div className="space-y-2">
+                                    <Label>Service / Prestation</Label>
+                                    <Select
+                                        value={selectedPrestationId}
+                                        onValueChange={setSelectedPrestationId}
+                                    >
+                                        <SelectTrigger className="bg-white dark:bg-slate-800">
+                                            <SelectValue placeholder="Sélectionner une prestation" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {loadingPrestations ? (
+                                                <SelectItem value="loading" disabled>Chargement...</SelectItem>
+                                            ) : (
+                                                prestations.filter(p => p.is_active).map(p => (
                                                     <SelectItem key={p.id} value={p.id}>
-                                                        {p.name} ({formatCurrency(p.price)})
+                                                        {p.name} - {formatCurrency(p.price)}
                                                     </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </td>
-                                    <td className="p-3">
-                                        <Input
-                                            type="number"
-                                            value={row.amount}
-                                            onChange={(e) => handleUpdateRow(index, 'amount', Number(e.target.value))}
-                                            className="text-right"
-                                        />
-                                    </td>
-                                    <td className="p-3">
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Status Selection */}
+                                <div className="space-y-2">
+                                    <Label>Statut Initial</Label>
+                                    <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+                                        <SelectTrigger className="bg-white dark:bg-slate-800">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="paid">Payé (immédiat)</SelectItem>
+                                            <SelectItem value="pending">En attente (à valider plus tard)</SelectItem>
+                                            <SelectItem value="refused">Refusé</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Date Selection */}
+                                <div className="space-y-2">
+                                    <Label>Date d'édition</Label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                         <Input
                                             type="date"
-                                            value={row.date}
-                                            onChange={(e) => handleUpdateRow(index, 'date', e.target.value)}
+                                            className="pl-9 bg-white dark:bg-slate-800"
+                                            value={paymentDate}
+                                            onChange={e => setPaymentDate(e.target.value)}
                                         />
-                                    </td>
-                                    <td className="p-3">
-                                        <Select
-                                            value={row.status}
-                                            onValueChange={(val: any) => handleUpdateRow(index, 'status', val)}
-                                        >
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="paid">Payé ✅</SelectItem>
-                                                <SelectItem value="pending">En attente ⏳</SelectItem>
-                                                <SelectItem value="refused">Refusé ❌</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </td>
-                                    <td className="p-3 text-center">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleRemoveRow(index)}
-                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500">
+                                        Cette date sera assignée à tous les paiements créés.
+                                    </p>
+                                </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-3 justify-end pt-4 border-t border-slate-200 dark:border-slate-800">
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            setMode('select')
-                            setPaymentRows([])
-                        }}
-                        disabled={loading}
-                    >
-                        Retour
-                    </Button>
-                    <Button
-                        onClick={handleSubmitPayments}
-                        disabled={loading || paymentRows.length === 0}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                        {loading ? (
-                            'Traitement...'
-                        ) : success ? (
-                            <>
-                                <CheckCircle2 className="w-4 h-4 mr-2" />
-                                Paiements créés !
-                            </>
-                        ) : (
-                            <>
-                                <DollarSign className="w-4 h-4 mr-2" />
-                                Créer {paymentRows.length} Paiement(s)
-                            </>
-                        )}
-                    </Button>
-                </div>
+                                {/* Summary */}
+                                {selectedPrestationData && (
+                                    <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg border border-purple-100 dark:border-purple-800">
+                                        <p className="text-sm font-medium text-purple-900 dark:text-purple-100 mb-2">Résumé</p>
+                                        <div className="flex justify-between text-sm">
+                                            <span>Montant unitaire :</span>
+                                            <span className="font-bold">{formatCurrency(selectedPrestationData.price)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm mt-1">
+                                            <span>Nombre de bénéficiaires :</span>
+                                            <span className="font-bold">{selectedUserIds.length}</span>
+                                        </div>
+                                        <div className="flex justify-between text-lg font-bold text-purple-700 dark:text-purple-300 mt-2 pt-2 border-t border-purple-200 dark:border-purple-800">
+                                            <span>Total Estimé :</span>
+                                            <span>{formatCurrency(selectedPrestationData.price * selectedUserIds.length)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <Button
+                                type="submit"
+                                disabled={saving || selectedUserIds.length === 0 || !selectedPrestationId}
+                                className="w-full h-12 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-500/20"
+                            >
+                                {saving ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Enregistrement...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-5 h-5 mr-2" />
+                                        Enregistrer {selectedUserIds.length} Paiement(s)
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </form>
             </CardContent>
         </Card>
     )
