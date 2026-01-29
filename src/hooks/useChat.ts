@@ -40,7 +40,7 @@ export function useChat(receiverId: string | null) {
 
         fetchMessages()
 
-        // Subscribe to new messages
+        // Subscribe to new messages sent to me or by me
         const channel = supabase
             .channel(`chat:${user.id}:${receiverId}`)
             .on(
@@ -49,26 +49,21 @@ export function useChat(receiverId: string | null) {
                     event: 'INSERT',
                     schema: 'public',
                     table: 'messages',
-                    filter: `sender_id=eq.${receiverId},receiver_id=eq.${user.id}`
                 },
                 (payload) => {
-                    setMessages((prev) => [...prev, payload.new as Message])
-                }
-            )
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `sender_id=eq.${user.id},receiver_id=eq.${receiverId}`
-                },
-                (payload) => {
-                    // This case is handled by the immediate UI update or by real-time if multiple devices
-                    setMessages((prev) => {
-                        if (prev.find(m => m.id === payload.new.id)) return prev;
-                        return [...prev, payload.new as Message]
-                    })
+                    const newMsg = payload.new as Message
+
+                    // Only show messages belonging to this conversation
+                    const isFromReceiverToMe = newMsg.sender_id === receiverId && newMsg.receiver_id === user.id
+                    const isFromMeToReceiver = newMsg.sender_id === user.id && newMsg.receiver_id === receiverId
+
+                    if (isFromReceiverToMe || isFromMeToReceiver) {
+                        setMessages((prev) => {
+                            // Avoid duplicates (e.g. if already added by sendMessage)
+                            if (prev.find(m => m.id === newMsg.id)) return prev;
+                            return [...prev, newMsg]
+                        })
+                    }
                 }
             )
             .subscribe()

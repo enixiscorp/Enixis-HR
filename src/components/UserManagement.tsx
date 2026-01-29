@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import { useCollaborators } from '@/hooks/useCollaborators'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Button } from './ui/button'
@@ -21,7 +22,7 @@ import {
     SelectValue
 } from './ui/select'
 import { Label } from './ui/label'
-import { Users, UserPlus, Shield, ShieldAlert, Edit2, Trash2, AlertCircle } from 'lucide-react'
+import { Users, UserPlus, Shield, ShieldAlert, Edit2, Trash2, AlertCircle, RotateCw } from 'lucide-react'
 import { Tabs, TabsContent } from './ui/tabs'
 import { supabase } from '@/lib/supabase'
 import { UserRole, UserStatus, Profile } from '@/types/database'
@@ -30,7 +31,7 @@ import { useToast } from '@/contexts/ToastContext'
 
 export function UserManagement() {
     const { profile: currentAdmin } = useAuth()
-    const { collaborators, loading, refresh } = useCollaborators()
+    const { collaborators, loading, refresh: refreshUsers } = useCollaborators()
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [submitting, setSubmitting] = useState(false)
@@ -71,7 +72,7 @@ export function UserManagement() {
 
             setIsCreateDialogOpen(false)
             setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'collaborator' })
-            refresh()
+            refreshUsers()
             toast('Compte et profil créés avec succès !', 'success')
         } catch (err: any) {
             console.error('Error creating user:', err)
@@ -107,7 +108,7 @@ export function UserManagement() {
             if (error) throw error
 
             setIsEditDialogOpen(false)
-            refresh()
+            refreshUsers()
             toast('Profil mis à jour avec succès !', 'success')
         } catch (err: any) {
             console.error('Error updating user:', err)
@@ -139,7 +140,7 @@ export function UserManagement() {
 
             if (error) throw error
 
-            refresh()
+            refreshUsers()
             toast('Utilisateur supprimé avec succès.', 'success')
         } catch (err: any) {
             console.error('Error deleting user:', err)
@@ -177,89 +178,100 @@ export function UserManagement() {
                                 </CardDescription>
                             </div>
 
-                            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
-                                        <UserPlus className="w-4 h-4 mr-2" />
-                                        Nouveau Compte
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-white/10">
-                                    <DialogHeader>
-                                        <DialogTitle>Créer un nouveau compte</DialogTitle>
-                                        <DialogDescription>
-                                            Configurez les accès d'un nouveau membre.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <form onSubmit={handleCreateUser} className="space-y-4 py-4">
-                                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-10 w-10 text-slate-400 hover:text-purple-600 shrink-0"
+                                    onClick={() => refreshUsers()}
+                                    title="Rafraîchir les données"
+                                >
+                                    <RotateCw className={cn("w-4 h-4", loading && "animate-spin")} />
+                                </Button>
+                                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
+                                            <UserPlus className="w-4 h-4 mr-2" />
+                                            Nouveau Compte
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-white/10">
+                                        <DialogHeader>
+                                            <DialogTitle>Créer un nouveau compte</DialogTitle>
+                                            <DialogDescription>
+                                                Configurez les accès d'un nouveau membre.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <form onSubmit={handleCreateUser} className="space-y-4 py-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="firstName">Prénom</Label>
+                                                    <Input
+                                                        id="firstName"
+                                                        value={formData.firstName}
+                                                        onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                                                        required
+                                                        className="bg-white/50 dark:bg-slate-800"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="lastName">Nom</Label>
+                                                    <Input
+                                                        id="lastName"
+                                                        value={formData.lastName}
+                                                        onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                                                        required
+                                                        className="bg-white/50 dark:bg-slate-800"
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="firstName">Prénom</Label>
+                                                <Label htmlFor="email">Email</Label>
                                                 <Input
-                                                    id="firstName"
-                                                    value={formData.firstName}
-                                                    onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                                                    id="email"
+                                                    type="email"
+                                                    value={formData.email}
+                                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
                                                     required
                                                     className="bg-white/50 dark:bg-slate-800"
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="lastName">Nom</Label>
+                                                <Label htmlFor="password">Mot de passe provisoire</Label>
                                                 <Input
-                                                    id="lastName"
-                                                    value={formData.lastName}
-                                                    onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                                                    id="password"
+                                                    type="password"
+                                                    value={formData.password}
+                                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
                                                     required
                                                     className="bg-white/50 dark:bg-slate-800"
                                                 />
                                             </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email">Email</Label>
-                                            <Input
-                                                id="email"
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                                required
-                                                className="bg-white/50 dark:bg-slate-800"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="password">Mot de passe provisoire</Label>
-                                            <Input
-                                                id="password"
-                                                type="password"
-                                                value={formData.password}
-                                                onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                                required
-                                                className="bg-white/50 dark:bg-slate-800"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="role">Rôle</Label>
-                                            <Select
-                                                value={formData.role}
-                                                onValueChange={(val: any) => setFormData({ ...formData, role: val })}
-                                            >
-                                                <SelectTrigger className="bg-white/50 dark:bg-slate-800">
-                                                    <SelectValue placeholder="Choisir un rôle" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="collaborator">Collaborateur</SelectItem>
-                                                    <SelectItem value="admin">Administrateur</SelectItem>
-                                                    <SelectItem value="super_admin">Super Administrateur</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <DialogFooter>
-                                            <Button type="submit" disabled={submitting} className="w-full bg-gradient-to-r from-purple-600 to-pink-600">
-                                                {submitting ? 'Création...' : 'Créer le compte'}
-                                            </Button>
-                                        </DialogFooter>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="role">Rôle</Label>
+                                                <Select
+                                                    value={formData.role}
+                                                    onValueChange={(val: any) => setFormData({ ...formData, role: val })}
+                                                >
+                                                    <SelectTrigger className="bg-white/50 dark:bg-slate-800">
+                                                        <SelectValue placeholder="Choisir un rôle" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="collaborator">Collaborateur</SelectItem>
+                                                        <SelectItem value="admin">Administrateur</SelectItem>
+                                                        <SelectItem value="super_admin">Super Administrateur</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <DialogFooter>
+                                                <Button type="submit" disabled={submitting} className="w-full bg-gradient-to-r from-purple-600 to-pink-600">
+                                                    {submitting ? 'Création...' : 'Créer le compte'}
+                                                </Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             {loading ? (

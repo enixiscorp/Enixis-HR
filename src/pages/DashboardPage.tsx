@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { usePlatformSettings } from '@/hooks/usePlatformSettings'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -44,14 +45,51 @@ export default function DashboardPage() {
 
     // State to track which user's data we are viewing
     const [selectedUserId, setSelectedUserId] = useState<string | undefined>(user?.id)
-    const [activeTab, setActiveTab] = useState('overview')
+
+    // Sync activeTab with URL parameter
+    const [activeTab, setActiveTabInternal] = useState(() => {
+        const params = new URLSearchParams(window.location.search)
+        return params.get('tab') || 'overview'
+    })
+
+    const setActiveTab = (tab: string) => {
+        const url = new URL(window.location.href)
+        url.searchParams.set('tab', tab)
+        window.history.pushState({}, '', url)
+        setActiveTabInternal(tab)
+    }
+
+    // Handle back/forward buttons
+    useEffect(() => {
+        const handlePopState = () => {
+            const params = new URLSearchParams(window.location.search)
+            setActiveTabInternal(params.get('tab') || 'overview')
+        }
+        window.addEventListener('popstate', handlePopState)
+        return () => window.removeEventListener('popstate', handlePopState)
+    }, [])
+
+    // Presence heartbeat: Update last_seen_at every 5 minutes
+    useEffect(() => {
+        if (!user?.id) return
+
+        const updatePresence = async () => {
+            try {
+                await supabase
+                    .from('profiles')
+                    .update({ last_seen_at: new Date().toISOString() })
+                    .eq('id', user.id)
+            } catch (err) {
+                console.error('Failed to update presence:', err)
+            }
+        }
+
+        updatePresence()
+        const interval = setInterval(updatePresence, 5 * 60 * 1000)
+        return () => clearInterval(interval)
+    }, [user?.id])
 
     // Update selectedUserId when user loads if not already set
-    useEffect(() => {
-        if (user?.id && !selectedUserId) {
-            setSelectedUserId(user.id)
-        }
-    }, [user, selectedUserId])
 
     // Data hooks now use the selectedUserId
     const { totalRevenue, loading: revenuesLoading } = useRevenues(selectedUserId)
@@ -200,7 +238,7 @@ export default function DashboardPage() {
                                 />
                                 <StatsCard
                                     title="Horaires à venir"
-                                    value={schedulesLoading ? '...' : upcomingSchedules.length}
+                                    value={schedulesLoading ? '...' : upcomingSchedules.length > 0 ? `${upcomingSchedules.length} assignés` : 'Repos (Aucun)'}
                                     icon={Calendar}
                                     gradient="from-blue-500 to-cyan-600"
                                 />
@@ -217,6 +255,13 @@ export default function DashboardPage() {
                                     gradient="from-orange-500 to-red-600"
                                 />
                             </div>
+
+                            {/* Revenue Evolution Chart for all users */}
+                            {selectedUserId && (
+                                <div className="animate-in fade-in slide-in-from-bottom-4 delay-150">
+                                    <PaymentManagement view="evolution" />
+                                </div>
+                            )}
 
                             {/* Data Cards Grid */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

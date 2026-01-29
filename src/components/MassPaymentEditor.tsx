@@ -84,10 +84,23 @@ export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
                 created_by: currentUser?.id
             }))
 
-            const { error } = await supabase.from('payments').insert(payments)
-            if (error) throw error
+            const { error: paymentError, data: insertedPayments } = await supabase.from('payments').insert(payments).select()
+            if (paymentError) throw paymentError
 
-            toast(`${payments.length} paiements créés avec succès`, 'success')
+            // If status is paid, we also insert into revenues table for stats/charts
+            if (status === 'paid' && insertedPayments) {
+                const revenues = insertedPayments.map(p => ({
+                    user_id: p.user_id,
+                    amount: p.amount,
+                    date: p.payment_date,
+                    period_type: 'monthly',
+                    description: p.description
+                }))
+                const { error: revError } = await supabase.from('revenues').insert(revenues)
+                if (revError) console.error('Error syncing to revenues:', revError)
+            }
+
+            toast(`${payments.length} paiements créés et synchronisés avec succès`, 'success')
             onCancel()
         } catch (err: any) {
             console.error('Error creating payments:', err)

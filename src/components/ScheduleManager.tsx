@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import { useAllSchedules, ScheduleWithProfile } from '@/hooks/useAllSchedules'
+import { useCollaborators } from '@/hooks/useCollaborators'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -14,7 +16,8 @@ import {
     UserX,
     Filter,
     Loader2,
-    CheckCircle2
+    CheckCircle2,
+    RotateCw
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -37,8 +40,44 @@ import {
 import { useToast } from '@/contexts/ToastContext'
 
 export function ScheduleManager() {
-    const { schedules, loading, deleteSchedule, updateSchedule } = useAllSchedules()
+    const { schedules, loading: schedulesLoading, deleteSchedule, updateSchedule, refresh: refreshSchedules } = useAllSchedules()
+    const { collaborators, loading: collaboratorsLoading } = useCollaborators()
     const { toast } = useToast()
+
+    const loading = schedulesLoading || collaboratorsLoading
+
+    // Calculate today's presence summary
+    const today = new Date().toISOString().split('T')[0]
+    const now = new Date()
+    const nowMinutes = now.getHours() * 60 + now.getMinutes()
+
+    const todaySchedules = schedules.filter(s => s.date === today && s.status !== 'off')
+
+    const absentUsers = collaborators.filter(collab => {
+        // Find if this collab has a schedule for today
+        const schedule = todaySchedules.find(s => s.user_id === collab.id)
+        if (!schedule) return false
+
+        const [startH, startM] = schedule.start_time.split(':').map(Number)
+        const startTime = startH * 60 + startM
+
+        // If it's past start time and they aren't online
+        const isRecentlyActive = collab.last_seen_at &&
+            (now.getTime() - new Date(collab.last_seen_at).getTime()) < 10 * 60 * 1000
+
+        return nowMinutes > startTime && !isRecentlyActive
+    }).map(collab => {
+        const schedule = todaySchedules.find(s => s.user_id === collab.id)
+        return { ...collab, expected: schedule?.start_time }
+    })
+
+    const unplannedOnline = collaborators.filter(collab => {
+        const hasSchedule = schedules.find(s => s.date === today && s.user_id === collab.id && s.status !== 'off')
+        const isRecentlyActive = collab.last_seen_at &&
+            (now.getTime() - new Date(collab.last_seen_at).getTime()) < 10 * 60 * 1000
+
+        return !hasSchedule && isRecentlyActive
+    })
 
     const [searchTerm, setSearchTerm] = useState('')
     const [dateFilter, setDateFilter] = useState('')
@@ -114,7 +153,16 @@ export function ScheduleManager() {
                         </CardTitle>
                         <CardDescription>Consultez et modifiez les horaires de tous les collaborateurs.</CardDescription>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 text-slate-400 hover:text-indigo-600 shrink-0"
+                            onClick={() => refreshSchedules()}
+                            title="Rafraîchir les données"
+                        >
+                            <RotateCw className={cn("w-4 h-4", loading && "animate-spin")} />
+                        </Button>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <Input
@@ -133,7 +181,43 @@ export function ScheduleManager() {
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+                {(absentUsers.length > 0 || unplannedOnline.length > 0) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {absentUsers.length > 0 && (
+                            <div className="p-4 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-900/10">
+                                <h4 className="text-sm font-bold text-red-700 dark:text-red-400 flex items-center gap-2 mb-3">
+                                    <UserX className="w-4 h-4" />
+                                    Collaborateurs Absents (En Retard)
+                                </h4>
+                                <div className="space-y-2">
+                                    {absentUsers.map(user => (
+                                        <div key={user.id} className="flex items-center justify-between text-xs bg-white/50 dark:bg-white/5 p-2 rounded-lg">
+                                            <span className="font-medium text-slate-900 dark:text-white">{user.first_name} {user.last_name}</span>
+                                            <Badge variant="outline" className="text-red-600 border-red-200">Attendu à {user.expected}</Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {unplannedOnline.length > 0 && (
+                            <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-900/10">
+                                <h4 className="text-sm font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-2 mb-3">
+                                    <Activity className="w-4 h-4" />
+                                    En Ligne - Non Programmé
+                                </h4>
+                                <div className="space-y-2">
+                                    {unplannedOnline.map(user => (
+                                        <div key={user.id} className="flex items-center justify-between text-xs bg-white/50 dark:bg-white/5 p-2 rounded-lg">
+                                            <span className="font-medium text-slate-900 dark:text-white">{user.first_name} {user.last_name}</span>
+                                            <Badge variant="outline" className="text-emerald-600 border-emerald-200 font-normal">Connecté</Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
                 {loading ? (
                     <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-500">
                         <Loader2 className="w-10 h-10 animate-spin text-indigo-500" />

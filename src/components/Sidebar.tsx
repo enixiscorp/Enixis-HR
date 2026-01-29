@@ -13,6 +13,8 @@ import {
     TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useUnreadMessages } from '@/hooks/useUnreadMessages'
+import { Badge } from './ui/badge'
 
 interface SidebarProps {
     activeTab: string
@@ -32,10 +34,11 @@ export function Sidebar({
     logoUrl
 }: SidebarProps) {
     const [isHovered, setIsHovered] = useState(false)
+    const { unreadCount } = useUnreadMessages()
 
     const menuItems = [
         { id: 'overview', label: 'Tableau de bord', icon: LayoutDashboard, show: true },
-        { id: 'activity', label: 'Activité Directe', icon: Clock, show: true },
+        { id: 'activity', label: 'Activité Directe', icon: Clock, show: true, badge: unreadCount > 0 ? unreadCount : null },
         { id: 'users', label: 'Collaborateurs', icon: Users, show: isAdmin },
         { id: 'payments', label: 'Paiements', icon: DollarSign, show: true },
         { id: 'evolution', label: 'Mon Évolution', icon: TrendingUp, show: true },
@@ -87,15 +90,28 @@ export function Sidebar({
                                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                             )}
                         >
-                            <item.icon className={cn(
-                                "w-6 h-6 shrink-0 transition-transform duration-200",
-                                activeTab === item.id ? "scale-110" : "group-hover:scale-110"
-                            )} />
+                            <div className="relative">
+                                <item.icon className={cn(
+                                    "w-6 h-6 shrink-0 transition-transform duration-200",
+                                    activeTab === item.id ? "scale-110" : "group-hover:scale-110"
+                                )} />
+                                {item.badge && (
+                                    <Badge
+                                        variant="destructive"
+                                        className="absolute -top-2 -right-2 px-1 py-0 min-w-[1.2rem] h-[1.2rem] flex items-center justify-center text-[10px] animate-bounce"
+                                    >
+                                        {item.badge}
+                                    </Badge>
+                                )}
+                            </div>
                             <span className={cn(
                                 "font-medium transition-all duration-300 whitespace-nowrap",
                                 isHovered ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 pointer-events-none"
                             )}>
                                 {item.label}
+                                {isHovered && item.badge && (
+                                    <Badge variant="destructive" className="ml-2 text-[10px]">{item.badge}</Badge>
+                                )}
                             </span>
 
                             {/* Active Indicator Line */}

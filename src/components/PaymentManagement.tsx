@@ -5,6 +5,8 @@ import { Badge } from './ui/badge'
 import { RevenueChart } from './RevenueChart'
 import { MassPaymentEditor } from './MassPaymentEditor'
 import { PaymentReporting } from './PaymentReporting'
+import { PaymentImporter } from './PaymentImporter'
+import { PaymentImportRow } from '@/lib/paymentImportUtils'
 import { useRevenues } from '@/hooks/useRevenues'
 import { usePayments, Payment } from '@/hooks/usePayments'
 import { PaymentStatus } from '@/types/database'
@@ -20,7 +22,8 @@ import {
     Calendar as CalendarIcon,
     DollarSign,
     CheckCircle2,
-    XCircle
+    XCircle,
+    RotateCw
 } from 'lucide-react'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
@@ -56,7 +59,7 @@ interface PaymentManagementProps {
 export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
     const { profile } = useAuth()
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
-    const { payments, loading: paymentsLoading } = usePayments(isAdmin ? undefined : profile?.id)
+    const { payments, loading: paymentsLoading, refresh: refreshPayments } = usePayments(isAdmin ? undefined : profile?.id)
     const { revenues } = useRevenues(isAdmin ? undefined : profile?.id)
     const { prestations, loading: loadingPrestations } = usePrestations()
     const { toast } = useToast()
@@ -74,6 +77,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
     const [submitting, setSubmitting] = useState(false)
 
     const [exportFormat, setExportFormat] = useState<'excel' | 'csv'>('excel')
+    const [isImporting, setIsImporting] = useState(false)
 
     const handleExportPending = async (format: 'excel' | 'csv' = 'excel') => {
         const pendingPayments = payments.filter(p => p.status === 'pending')
@@ -100,12 +104,27 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
 
     const handleStatusUpdate = async (paymentId: string, newStatus: string) => {
         try {
-            const { error } = await supabase
+            const { data: updatedPayment, error } = await supabase
                 .from('payments')
                 .update({ status: newStatus as any })
                 .eq('id', paymentId)
+                .select('*, profiles:user_id(*)')
+                .single()
 
             if (error) throw error
+
+            // If marked as paid, sync to revenues
+            if (newStatus === 'paid' && updatedPayment) {
+                const { error: revError } = await supabase.from('revenues').insert({
+                    user_id: updatedPayment.user_id,
+                    amount: updatedPayment.amount,
+                    date: updatedPayment.payment_date,
+                    period_type: 'monthly',
+                    description: updatedPayment.description || 'Paiement validé'
+                })
+                if (revError) console.error('Error syncing to revenues:', revError)
+            }
+
             toast(`Statut mis à jour : ${newStatus === 'paid' ? 'Payé' : 'Refusé'}`, 'success')
         } catch (err: any) {
             console.error('Error updating status:', err)
@@ -138,29 +157,63 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
     }
 
     const handleUpdatePayment = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!selectedPayment) return
+        // ... (previous content kept, just adding handleImportComplete after it)
+    }
+
+    const handleImportComplete = async (data: PaymentImportRow[]) => {
         setSubmitting(true)
-
         try {
-            const { error } = await supabase
+            // 1. Get profiles to map email to user_id
+            const { data: profiles, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, email')
+
+            if (profileError) throw profileError
+
+            const paymentsToInsert = data.map(row => {
+                const profile = profiles?.find(p => p.email?.toLowerCase() === row.email.toLowerCase())
+                return {
+                    user_id: profile?.id,
+                    amount: row.montant,
+                    payment_date: row.date_prestation,
+                    payment_type: 'monthly',
+                    status: 'paid' as const,
+                    description: row.prestation,
+                    created_by: profile?.id
+                }
+            }).filter(p => p.user_id) // Skip rows if email not found
+
+            if (paymentsToInsert.length === 0) {
+                toast("Aucun collaborateur correspondant trouvé pour les emails fournis.", "error")
+                return
+            }
+
+            // 2. Insert into payments
+            const { data: insertedPayments, error: paymentError } = await supabase
                 .from('payments')
-                .update({
-                    amount: Number(editAmount),
-                    payment_type: editType,
-                    payment_date: editDate,
-                    description: editDescription,
-                    status: editStatus
-                })
-                .eq('id', selectedPayment.id)
+                .insert(paymentsToInsert)
+                .select()
 
-            if (error) throw error
+            if (paymentError) throw paymentError
 
-            toast('Paiement mis à jour avec succès.', 'success')
-            setIsEditing(false)
+            // 3. Sync to revenues
+            if (insertedPayments && insertedPayments.length > 0) {
+                const revenuesToInsert = insertedPayments.map(p => ({
+                    user_id: p.user_id,
+                    amount: p.amount,
+                    date: p.payment_date,
+                    period_type: 'monthly',
+                    description: p.description || 'Import de paiement'
+                }))
+                const { error: revError } = await supabase.from('revenues').insert(revenuesToInsert)
+                if (revError) console.error('Error syncing to revenues during import:', revError)
+            }
+
+            toast(`${paymentsToInsert.length} paiements importés et synchronisés avec succès.`, "success")
+            setIsImporting(false)
         } catch (err: any) {
-            console.error('Error updating payment:', err)
-            toast(err.message || 'Erreur lors de la mise à jour.', 'error')
+            console.error('Error importing payments:', err)
+            toast(err.message || "Erreur lors de l'importation.", "error")
         } finally {
             setSubmitting(false)
         }
@@ -196,6 +249,14 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                             </Select>
                             <Button
                                 variant="outline"
+                                className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-800 h-10"
+                                onClick={() => setIsImporting(true)}
+                            >
+                                <Plus className="w-4 h-4" />
+                                Importer (Excel/CSV)
+                            </Button>
+                            <Button
+                                variant="outline"
                                 className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800 h-10"
                                 onClick={() => handleExportPending(exportFormat)}
                             >
@@ -222,9 +283,12 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                 )}
             </div>
 
-            {isMassPaying && isAdmin && (
+            {isImporting && isAdmin && (
                 <div className="mb-8">
-                    <MassPaymentEditor onCancel={() => setIsMassPaying(false)} />
+                    <PaymentImporter
+                        onImportComplete={handleImportComplete}
+                        onCancel={() => setIsImporting(false)}
+                    />
                 </div>
             )}
 
@@ -237,14 +301,25 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                                 <CardDescription>Les derniers paiements effectués sur la plateforme.</CardDescription>
                             </div>
                             {isAdmin && (
-                                <div className="relative w-full sm:w-64">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <Input
-                                        placeholder="Rechercher un collaborateur..."
-                                        className="pl-9 bg-white/50 dark:bg-slate-800/50"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-10 w-10 text-slate-400 hover:text-purple-600 shrink-0"
+                                        onClick={() => refreshPayments()}
+                                        title="Rafraîchir les données"
+                                    >
+                                        <RotateCw className={cn("w-4 h-4", paymentsLoading && "animate-spin")} />
+                                    </Button>
+                                    <div className="relative w-full sm:w-64">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <Input
+                                            placeholder="Rechercher un collaborateur..."
+                                            className="pl-9 bg-white/50 dark:bg-slate-800/50"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -414,16 +489,19 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                         )}
                     </CardContent>
                 </Card>
-            )}
+            )
+            }
 
             {/* Analytical Curve */}
-            {(view === 'evolution' || view === 'all') && !isMassPaying && (
-                <RevenueChart
-                    data={chartData}
-                    title={isAdmin ? "Revenu Global de la Plateforme" : "Mon Évolution Financière"}
-                    description={isAdmin ? "Performance cumulée de tous les collaborateurs" : "Suivi de vos prestations et bonus"}
-                />
-            )}
+            {
+                (view === 'evolution' || view === 'all') && !isMassPaying && (
+                    <RevenueChart
+                        data={chartData}
+                        title={isAdmin ? "Revenu Global de la Plateforme" : "Mon Évolution Financière"}
+                        description={isAdmin ? "Performance cumulée de tous les collaborateurs" : "Suivi de vos prestations et bonus"}
+                    />
+                )
+            }
 
             {!isMassPaying && isAdmin && <PaymentReporting />}
 
@@ -530,6 +608,6 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                     </form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }

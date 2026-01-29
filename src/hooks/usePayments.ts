@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export interface Payment {
@@ -25,30 +25,30 @@ export function usePayments(userId: string | undefined) {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        const fetchPayments = async () => {
-            try {
-                setLoading(true)
-                let query = supabase
-                    .from('payments')
-                    .select('*, profiles:user_id(first_name, last_name, email, role, avatar_url), description')
-                    .order('payment_date', { ascending: false })
+    const fetchPayments = useCallback(async () => {
+        try {
+            setLoading(true)
+            let query = supabase
+                .from('payments')
+                .select('*, profiles:user_id(first_name, last_name, email, role, avatar_url), description')
+                .order('payment_date', { ascending: false })
 
-                if (userId) {
-                    query = query.eq('user_id', userId)
-                }
-
-                const { data, error } = await query
-
-                if (error) throw error
-                setPayments(data || [])
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Error fetching payments')
-            } finally {
-                setLoading(false)
+            if (userId) {
+                query = query.eq('user_id', userId)
             }
-        }
 
+            const { data, error } = await query
+
+            if (error) throw error
+            setPayments(data || [])
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error fetching payments')
+        } finally {
+            setLoading(false)
+        }
+    }, [userId])
+
+    useEffect(() => {
         fetchPayments()
 
         // Subscribe to real-time changes
@@ -60,7 +60,7 @@ export function usePayments(userId: string | undefined) {
                     event: '*',
                     schema: 'public',
                     table: 'payments',
-                    filter: `user_id=eq.${userId}`,
+                    ...(userId ? { filter: `user_id=eq.${userId}` } : {}),
                 },
                 () => {
                     fetchPayments()
@@ -71,7 +71,7 @@ export function usePayments(userId: string | undefined) {
         return () => {
             subscription.unsubscribe()
         }
-    }, [userId])
+    }, [userId, fetchPayments])
 
     const totalPaid = payments
         .filter(p => p.status === 'paid')
@@ -79,5 +79,5 @@ export function usePayments(userId: string | undefined) {
 
     const pendingPayments = payments.filter(p => p.status === 'pending')
 
-    return { payments, loading, error, totalPaid, pendingPayments }
+    return { payments, loading, error, totalPaid, pendingPayments, refresh: fetchPayments }
 }
