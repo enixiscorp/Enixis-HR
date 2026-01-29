@@ -58,7 +58,11 @@ interface PaymentManagementProps {
 export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
     const { profile } = useAuth()
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
-    const { payments, loading: paymentsLoading, refresh: refreshPayments } = usePayments(isAdmin ? undefined : profile?.id)
+    const {
+        payments,
+        loading: paymentsLoading,
+        refresh: refreshPayments
+    } = usePayments(isAdmin ? undefined : profile?.id)
     const { revenues } = useRevenues(isAdmin ? undefined : profile?.id)
     const { prestations, loading: loadingPrestations } = usePrestations()
     const { toast } = useToast()
@@ -200,6 +204,10 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
         return name.includes(searchTerm.toLowerCase())
     })
 
+    const filteredTotal = filteredPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+    const filteredPaid = filteredPayments.filter(p => p.status === 'paid').reduce((sum, p) => sum + Number(p.amount), 0)
+    const filteredPending = filteredPayments.filter(p => p.status === 'pending').reduce((sum, p) => sum + Number(p.amount), 0)
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -254,6 +262,38 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
             {isMassPaying && isAdmin && (
                 <div className="mb-8">
                     <MassPaymentEditor onCancel={() => setIsMassPaying(false)} />
+                </div>
+            )}
+
+            {isAdmin && !isMassPaying && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Card className="bg-white/40 backdrop-blur-sm border-white/20">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">Total Sélectionné</p>
+                                <p className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(filteredTotal)}</p>
+                            </div>
+                            <DollarSign className="w-8 h-8 text-purple-600/20" />
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white/40 backdrop-blur-sm border-white/20">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">Payé Sélectionné</p>
+                                <p className="text-xl font-bold text-emerald-600">{formatCurrency(filteredPaid)}</p>
+                            </div>
+                            <CheckCircle2 className="w-8 h-8 text-emerald-600/20" />
+                        </CardContent>
+                    </Card>
+                    <Card className="bg-white/40 backdrop-blur-sm border-white/20">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase">En Attente Sélectionné</p>
+                                <p className="text-xl font-bold text-amber-600">{formatCurrency(filteredPending)}</p>
+                            </div>
+                            <RotateCw className="w-8 h-8 text-amber-600/20" />
+                        </CardContent>
+                    </Card>
                 </div>
             )}
 

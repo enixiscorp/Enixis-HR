@@ -73,11 +73,27 @@ export function usePayments(userId: string | undefined) {
         }
     }, [userId, fetchPayments])
 
-    const totalPaid = payments
+    const totalAmount = payments
+        .reduce((sum, payment) => sum + Number(payment.amount), 0)
+
+    const totalPaidAmount = payments
         .filter(p => p.status === 'paid')
+        .reduce((sum, payment) => sum + Number(payment.amount), 0)
+
+    const totalPendingAmount = payments
+        .filter(p => p.status === 'pending')
         .reduce((sum, payment) => sum + Number(payment.amount), 0)
 
     const pendingPayments = payments.filter(p => p.status === 'pending')
 
-    return { payments, loading, error, totalPaid, pendingPayments, refresh: fetchPayments }
+    return {
+        payments,
+        loading,
+        error,
+        totalAmount,
+        totalPaidAmount,
+        totalPendingAmount,
+        pendingPayments,
+        refresh: fetchPayments
+    }
 }

@@ -204,21 +204,19 @@ export function PersonnelStatusList({ profiles }: PersonnelStatusListProps) {
                                             <Icon className="w-3 h-3 mr-1" />
                                             {statusInfo.label}
                                         </Badge>
-                                        {(statusInfo.status === 'working' || statusInfo.status === 'online' || statusInfo.status === 'online_unplanned') && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setSelectedReceiver(profile)
-                                                    setIsChatOpen(true)
-                                                }}
-                                                className="w-8 h-8 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 animate-pulse-border"
-                                                title="Démarrer une discussion"
-                                            >
-                                                <MessageSquare className="w-4 h-4" />
-                                            </Button>
-                                        )}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                setSelectedReceiver(profile)
+                                                setIsChatOpen(true)
+                                            }}
+                                            className="w-8 h-8 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 animate-pulse-border"
+                                            title="Démarrer une discussion"
+                                        >
+                                            <MessageSquare className="w-4 h-4" />
+                                        </Button>
                                     </div>
                                 </div>
                             </HoverCardTrigger>

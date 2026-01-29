@@ -65,7 +65,6 @@ export function ChatDialog({ receiver, isOpen, onClose }: ChatDialogProps) {
                             <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white">
                                 {receiver.first_name} {receiver.last_name}
                             </DialogTitle>
-                            <p className="text-xs text-emerald-500 font-medium">En ligne (Service)</p>
                         </div>
                     </div>
                 </DialogHeader>

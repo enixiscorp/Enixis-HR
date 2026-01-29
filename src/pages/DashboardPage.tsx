@@ -91,10 +91,8 @@ export default function DashboardPage() {
 
     // Update selectedUserId when user loads if not already set
 
-    // Data hooks now use the selectedUserId
-    const { totalRevenue, loading: revenuesLoading } = useRevenues(selectedUserId)
     const { upcomingSchedules, loading: schedulesLoading } = useSchedules(selectedUserId)
-    const { totalPaid, pendingPayments, loading: paymentsLoading } = usePayments(selectedUserId)
+    const { totalAmount, totalPaidAmount, totalPendingAmount, loading: paymentsLoading } = usePayments(selectedUserId)
 
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
     const isSuperAdmin = profile?.role === 'super_admin'
@@ -232,7 +230,7 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 <StatsCard
                                     title="Revenus totaux"
-                                    value={revenuesLoading ? '...' : formatCurrency(totalRevenue)}
+                                    value={paymentsLoading ? '...' : formatCurrency(totalAmount)}
                                     icon={DollarSign}
                                     gradient="from-green-500 to-emerald-600"
                                 />
@@ -244,13 +242,13 @@ export default function DashboardPage() {
                                 />
                                 <StatsCard
                                     title="Paiements reçus"
-                                    value={paymentsLoading ? '...' : formatCurrency(totalPaid)}
+                                    value={paymentsLoading ? '...' : formatCurrency(totalPaidAmount)}
                                     icon={Wallet}
                                     gradient="from-purple-500 to-pink-600"
                                 />
                                 <StatsCard
                                     title="En attente"
-                                    value={paymentsLoading ? '...' : pendingPayments.length}
+                                    value={paymentsLoading ? '...' : formatCurrency(totalPendingAmount)}
                                     icon={Wallet}
                                     gradient="from-orange-500 to-red-600"
                                 />
