@@ -17,11 +17,11 @@ import { usePrestations } from '@/hooks/usePrestations'
 import { useToast } from '@/contexts/ToastContext'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { supabase } from '@/lib/supabase'
-import { Users, Banknote, Calendar, CheckCircle2, Save, X, Search, Loader2 } from 'lucide-react'
+import { Users, Banknote, Calendar, CheckCircle2, Save, X, Search, Loader2, Plus } from 'lucide-react'
 
 export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
     const { user: currentUser } = useAuth()
-    const { profiles, loading: loadingProfiles } = useProfiles()
+    const { profiles } = useProfiles()
     const { prestations, loading: loadingPrestations } = usePrestations()
     const { toast } = useToast()
     const { formatCurrency } = useCurrency()
@@ -137,49 +137,96 @@ export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <Input
-                                    placeholder="Rechercher..."
+                                    placeholder="Chercher et ajouter un bénéficiaire..."
                                     className="pl-9 bg-white/50 dark:bg-slate-800"
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
+                                    onFocus={() => {
+                                        if (searchTerm === '') setSearchTerm(' ')
+                                    }}
                                 />
+                                {searchTerm.length > 0 && (
+                                    <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl z-50 max-h-[300px] overflow-y-auto p-2 space-y-1">
+                                        <div className="flex justify-between items-center px-2 py-1 border-b border-slate-100 dark:border-slate-800 mb-1">
+                                            <span className="text-[10px] font-bold uppercase text-slate-500">Résultats</span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 text-[10px] text-purple-600 hover:text-purple-700"
+                                                onClick={() => {
+                                                    const toAdd = beneficiaries.filter(b => !selectedUserIds.includes(b.id)).map(b => b.id)
+                                                    setSelectedUserIds(prev => [...prev, ...toAdd])
+                                                    setSearchTerm('')
+                                                }}
+                                            >
+                                                Tout ajouter
+                                            </Button>
+                                        </div>
+                                        {beneficiaries.filter(b => !selectedUserIds.includes(b.id)).length === 0 ? (
+                                            <p className="text-xs text-slate-500 p-2 text-center">Aucun autre bénéficiaire trouvé</p>
+                                        ) : (
+                                            beneficiaries.filter(b => !selectedUserIds.includes(b.id)).map(profile => (
+                                                <div
+                                                    key={profile.id}
+                                                    onClick={() => {
+                                                        handleUserToggle(profile.id)
+                                                        setSearchTerm('')
+                                                    }}
+                                                    className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md cursor-pointer transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 font-bold text-xs">
+                                                        {profile.first_name?.[0]}{profile.last_name?.[0]}
+                                                    </div>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                                            {profile.first_name} {profile.last_name}
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-500 truncate">{profile.email}</p>
+                                                    </div>
+                                                    <Plus className="w-3 h-3 text-slate-400" />
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 h-[400px] overflow-y-auto p-2 space-y-2">
-                                {loadingProfiles ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
-                                        <Loader2 className="w-8 h-8 animate-spin mb-2" />
-                                        Chargement...
-                                    </div>
-                                ) : beneficiaries.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
-                                        Aucun bénéficiaire trouvé via la recherche.
-                                    </div>
-                                ) : (
-                                    beneficiaries.map(profile => (
-                                        <div
-                                            key={profile.id}
-                                            onClick={() => handleUserToggle(profile.id)}
-                                            className={`
-                                                flex items-center gap-3 p-3 rounded-md cursor-pointer border transition-all
-                                                ${selectedUserIds.includes(profile.id)
-                                                    ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-500 shadow-sm'
-                                                    : 'bg-white dark:bg-slate-800 border-transparent hover:border-slate-300 dark:hover:border-slate-600'}
-                                            `}
-                                        >
-                                            <Checkbox
-                                                checked={selectedUserIds.includes(profile.id)}
-                                                onCheckedChange={() => handleUserToggle(profile.id)}
-                                                className="pointer-events-none"
-                                            />
-                                            <div className="flex-1 overflow-hidden">
-                                                <p className="font-medium text-sm text-slate-900 dark:text-white truncate">
-                                                    {profile.first_name} {profile.last_name}
-                                                </p>
-                                                <p className="text-xs text-slate-500 truncate">{profile.email}</p>
-                                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold uppercase text-slate-500 px-1">Sélectionnés ({selectedUserIds.length})</Label>
+                                <div className="border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 h-[300px] overflow-y-auto p-2 space-y-2">
+                                    {selectedUserIds.length === 0 ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm italic">
+                                            Utilisez la recherche pour ajouter des bénéficiaires.
                                         </div>
-                                    ))
-                                )}
+                                    ) : (
+                                        selectedUserIds.map(id => {
+                                            const profile = profiles.find(p => p.id === id)
+                                            if (!profile) return null
+                                            return (
+                                                <div
+                                                    key={id}
+                                                    className="flex items-center gap-3 p-2 bg-white dark:bg-slate-800 border border-purple-100 dark:border-purple-900/30 rounded-md shadow-sm"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-bold">
+                                                        {profile.first_name?.[0]}{profile.last_name?.[0]}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold truncate">{profile.first_name} {profile.last_name}</p>
+                                                        <p className="text-[10px] text-slate-500 truncate">Collaborateur</p>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-7 w-7 text-slate-400 hover:text-red-500"
+                                                        onClick={() => handleUserToggle(id)}
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            )
+                                        })
+                                    )}
+                                </div>
                             </div>
                         </div>
 

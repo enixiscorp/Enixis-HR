@@ -201,204 +201,208 @@ export function PaymentManagement() {
                 )}
             </div>
 
-            {/* Analytical Curve */}
-            <RevenueChart
-                data={chartData}
-                title={isAdmin ? "Revenu Global de la Plateforme" : "Mon Évolution Financière"}
-                description={isAdmin ? "Performance cumulée de tous les collaborateurs" : "Suivi de vos prestations et bonus"}
-            />
+            {isMassPaying && isAdmin && (
+                <div className="mb-8">
+                    <MassPaymentEditor onCancel={() => setIsMassPaying(false)} />
+                </div>
+            )}
 
-            {isMassPaying ? (
-                <MassPaymentEditor onCancel={() => setIsMassPaying(false)} />
-            ) : (
-                <>
-                    <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg border border-slate-200/50 dark:border-slate-800/50">
-                        <CardHeader>
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                <div>
-                                    <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Historique de Paiements</CardTitle>
-                                    <CardDescription>Les derniers paiements effectués sur la plateforme.</CardDescription>
-                                </div>
-                                <div className="relative w-full sm:w-64">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <Input
-                                        placeholder="Rechercher un collaborateur..."
-                                        className="pl-9 bg-white/50 dark:bg-slate-800/50"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                </div>
+            {!isMassPaying && (
+                <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg border border-slate-200/50 dark:border-slate-800/50">
+                    <CardHeader>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Historique de Paiements</CardTitle>
+                                <CardDescription>Les derniers paiements effectués sur la plateforme.</CardDescription>
                             </div>
-                        </CardHeader>
-                        <CardContent>
-                            {paymentsLoading ? (
-                                <div className="py-20 flex flex-col items-center justify-center gap-4">
-                                    <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
-                                    <p className="text-slate-500 font-medium animate-pulse">Chargement des transactions...</p>
+                            <div className="relative w-full sm:w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                    placeholder="Rechercher un collaborateur..."
+                                    className="pl-9 bg-white/50 dark:bg-slate-800/50"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {paymentsLoading ? (
+                            <div className="py-20 flex flex-col items-center justify-center gap-4">
+                                <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+                                <p className="text-slate-500 font-medium animate-pulse">Chargement des transactions...</p>
+                            </div>
+                        ) : filteredPayments.length === 0 ? (
+                            <div className="py-20 text-center space-y-2">
+                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <DollarSign className="w-8 h-8 text-slate-400" />
                                 </div>
-                            ) : filteredPayments.length === 0 ? (
-                                <div className="py-20 text-center space-y-2">
-                                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <DollarSign className="w-8 h-8 text-slate-400" />
-                                    </div>
-                                    <p className="text-slate-900 dark:text-white font-semibold">Aucun paiement trouvé</p>
-                                    <p className="text-slate-500 text-sm">Ajustez votre recherche ou effectuez un nouveau paiement.</p>
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
-                                                <th className="py-4 px-2 font-semibold">Collaborateur</th>
-                                                <th className="py-4 px-2 font-semibold">Prestation</th>
-                                                <th className="py-4 px-2 font-semibold text-center">Statut</th>
-                                                <th className="py-4 px-2 font-semibold text-center">Date</th>
-                                                <th className="py-4 px-2 font-semibold text-right">Commission</th>
-                                                <th className="py-4 px-2 font-semibold text-center">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-                                            {filteredPayments.map(payment => (
-                                                <tr key={payment.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
-                                                    <td className="py-4 px-2">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-100 dark:border-purple-900/30 flex items-center justify-center text-purple-600 font-bold text-xs uppercase shadow-sm">
-                                                                {payment.profiles?.first_name?.[0] || '?'}{payment.profiles?.last_name?.[0] || ''}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-slate-900 dark:text-white text-sm">
-                                                                    {payment.profiles?.first_name || ''} {payment.profiles?.last_name || ''}
-                                                                </p>
-                                                                <p className="text-[10px] text-slate-500 font-medium">
-                                                                    {payment.profiles?.role === 'super_admin' ? 'Super Admin' :
-                                                                        payment.profiles?.role === 'admin' ? 'Administrateur' : 'Collaborateur'}
-                                                                </p>
-                                                            </div>
+                                <p className="text-slate-900 dark:text-white font-semibold">Aucun paiement trouvé</p>
+                                <p className="text-slate-500 text-sm">Ajustez votre recherche ou effectuez un nouveau paiement.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
+                                            <th className="py-4 px-2 font-semibold">Collaborateur</th>
+                                            <th className="py-4 px-2 font-semibold">Prestation</th>
+                                            <th className="py-4 px-2 font-semibold text-center">Statut</th>
+                                            <th className="py-4 px-2 font-semibold text-center">Date</th>
+                                            <th className="py-4 px-2 font-semibold text-right">Commission</th>
+                                            <th className="py-4 px-2 font-semibold text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                                        {filteredPayments.map(payment => (
+                                            <tr key={payment.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+                                                <td className="py-4 px-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-100 dark:border-purple-900/30 flex items-center justify-center text-purple-600 font-bold text-xs uppercase shadow-sm">
+                                                            {payment.profiles?.first_name?.[0] || '?'}{payment.profiles?.last_name?.[0] || ''}
                                                         </div>
-                                                    </td>
-                                                    <td className="py-4 px-2">
-                                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 max-w-[200px] truncate" title={payment.description || 'Paiement standard'}>
-                                                            {payment.description || 'Paiement standard'}
-                                                        </p>
-                                                    </td>
-                                                    <td className="py-4 px-2">
-                                                        <div className="flex justify-center">
-                                                            {payment.status === 'paid' ? (
-                                                                <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] uppercase font-bold">
-                                                                    Payé
-                                                                </Badge>
-                                                            ) : payment.status === 'refused' ? (
-                                                                <Badge className="bg-red-500/10 text-red-600 border-red-200 text-[10px] uppercase font-bold">
-                                                                    Refusé
-                                                                </Badge>
-                                                            ) : (
-                                                                <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-[10px] uppercase font-bold">
-                                                                    En attente
-                                                                </Badge>
-                                                            )}
+                                                        <div>
+                                                            <p className="font-semibold text-slate-900 dark:text-white text-sm">
+                                                                {payment.profiles?.first_name || ''} {payment.profiles?.last_name || ''}
+                                                            </p>
+                                                            <p className="text-[10px] text-slate-500 font-medium">
+                                                                {payment.profiles?.role === 'super_admin' ? 'Super Admin' :
+                                                                    payment.profiles?.role === 'admin' ? 'Administrateur' : 'Collaborateur'}
+                                                            </p>
                                                         </div>
-                                                    </td>
-                                                    <td className="py-4 px-2 text-center">
-                                                        <div className="flex flex-col items-center">
-                                                            <span className="text-slate-900 dark:text-white text-sm font-medium">
-                                                                {format(new Date(payment.payment_date), 'dd MMM yyyy', { locale: fr })}
-                                                            </span>
-                                                            <span className="text-[10px] text-slate-500">
-                                                                Prestation
-                                                            </span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-4 px-2 text-right">
-                                                        <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
-                                                            {formatCurrency(payment.amount)}
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-2">
+                                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 max-w-[200px] truncate" title={payment.description || 'Paiement standard'}>
+                                                        {payment.description || 'Paiement standard'}
+                                                    </p>
+                                                </td>
+                                                <td className="py-4 px-2">
+                                                    <div className="flex justify-center">
+                                                        {payment.status === 'paid' ? (
+                                                            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] uppercase font-bold">
+                                                                Payé
+                                                            </Badge>
+                                                        ) : payment.status === 'refused' ? (
+                                                            <Badge className="bg-red-500/10 text-red-600 border-red-200 text-[10px] uppercase font-bold">
+                                                                Refusé
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 text-[10px] uppercase font-bold">
+                                                                En attente
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-2 text-center">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-slate-900 dark:text-white text-sm font-medium">
+                                                            {format(new Date(payment.payment_date), 'dd MMM yyyy', { locale: fr })}
                                                         </span>
-                                                    </td>
-                                                    <td className="py-4 px-2">
-                                                        <div className="flex items-center justify-center gap-1">
-                                                            {isAdmin && (
-                                                                <>
+                                                        <span className="text-[10px] text-slate-500">
+                                                            Prestation
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-2 text-right">
+                                                    <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                                                        {formatCurrency(payment.amount)}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-2">
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        {isAdmin && (
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 w-8 p-0 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                                                                    onClick={() => handleEditClick(payment)}
+                                                                    title="Éditer"
+                                                                >
+                                                                    <Edit2 className="w-4 h-4" />
+                                                                </Button>
+                                                                {payment.status !== 'paid' && (
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="sm"
-                                                                        className="h-8 w-8 p-0 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                                                                        onClick={() => handleEditClick(payment)}
-                                                                        title="Éditer"
+                                                                        className="h-8 w-8 p-0 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                                                        onClick={() => handleStatusUpdate(payment.id, 'paid')}
+                                                                        title="Confirmer le paiement"
                                                                     >
-                                                                        <Edit2 className="w-4 h-4" />
+                                                                        <CheckCircle2 className="w-4 h-4" />
                                                                     </Button>
-                                                                    {payment.status !== 'paid' && (
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            className="h-8 w-8 p-0 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                                                                            onClick={() => handleStatusUpdate(payment.id, 'paid')}
-                                                                            title="Confirmer le paiement"
-                                                                        >
-                                                                            <CheckCircle2 className="w-4 h-4" />
-                                                                        </Button>
-                                                                    )}
-                                                                    {payment.status !== 'refused' && (
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            className="h-8 w-8 p-0 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                                            onClick={() => handleStatusUpdate(payment.id, 'refused')}
-                                                                            title="Refuser le paiement"
-                                                                        >
-                                                                            <XCircle className="w-4 h-4" />
-                                                                        </Button>
-                                                                    )}
-                                                                </>
-                                                            )}
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                                                                title="Envoyer par email"
-                                                                onClick={() => handleSendEmail(payment)}
-                                                            >
-                                                                <Mail className="w-4 h-4" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                                title="Bulletin PDF"
-                                                                onClick={() => generatePaymentPDF(
-                                                                    {
-                                                                        id: payment.id,
-                                                                        amount: payment.amount,
-                                                                        payment_date: payment.payment_date,
-                                                                        payment_type: payment.payment_type,
-                                                                        status: payment.status
-                                                                    },
-                                                                    {
-                                                                        id: payment.user_id,
-                                                                        first_name: payment.profiles?.first_name || '',
-                                                                        last_name: payment.profiles?.last_name || '',
-                                                                        role: payment.profiles?.role as any || 'collaborator',
-                                                                        email: payment.profiles?.email || '',
-                                                                        status: 'active'
-                                                                    },
-                                                                    settings?.logo_url || null
                                                                 )}
-                                                            >
-                                                                <FileDown className="w-4 h-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {isAdmin && <PaymentReporting />}
-                </>
+                                                                {payment.status !== 'refused' && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-8 w-8 p-0 text-red-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                        onClick={() => handleStatusUpdate(payment.id, 'refused')}
+                                                                        title="Refuser le paiement"
+                                                                    >
+                                                                        <XCircle className="w-4 h-4" />
+                                                                    </Button>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                                            title="Envoyer par email"
+                                                            onClick={() => handleSendEmail(payment)}
+                                                        >
+                                                            <Mail className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                            title="Bulletin PDF"
+                                                            onClick={() => generatePaymentPDF(
+                                                                {
+                                                                    id: payment.id,
+                                                                    amount: payment.amount,
+                                                                    payment_date: payment.payment_date,
+                                                                    payment_type: payment.payment_type,
+                                                                    status: payment.status
+                                                                },
+                                                                {
+                                                                    id: payment.user_id,
+                                                                    first_name: payment.profiles?.first_name || '',
+                                                                    last_name: payment.profiles?.last_name || '',
+                                                                    role: payment.profiles?.role as any || 'collaborator',
+                                                                    email: payment.profiles?.email || '',
+                                                                    status: 'active'
+                                                                },
+                                                                settings?.logo_url || null
+                                                            )}
+                                                        >
+                                                            <FileDown className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             )}
+
+            {/* Analytical Curve */}
+            {!isMassPaying && (
+                <RevenueChart
+                    data={chartData}
+                    title={isAdmin ? "Revenu Global de la Plateforme" : "Mon Évolution Financière"}
+                    description={isAdmin ? "Performance cumulée de tous les collaborateurs" : "Suivi de vos prestations et bonus"}
+                />
+            )}
+
+            {!isMassPaying && isAdmin && <PaymentReporting />}
 
             {/* Edit Payment Dialog */}
             <Dialog open={isEditing} onOpenChange={setIsEditing}>

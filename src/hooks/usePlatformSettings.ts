@@ -35,12 +35,19 @@ export function usePlatformSettings() {
 
     const updateLogo = async (url: string) => {
         try {
+            // Fetch latest ID just in case to avoid duplicates
+            const { data: latest } = await supabase
+                .from('platform_settings')
+                .select('id')
+                .maybeSingle()
+
             const { error } = await supabase
                 .from('platform_settings')
                 .upsert({
-                    id: settings?.id || undefined,
+                    id: latest?.id || settings?.id || undefined,
                     logo_url: url,
-                    platform_name: 'Enixis HR'
+                    platform_name: 'Enixis HR',
+                    updated_at: new Date().toISOString()
                 })
 
             if (error) throw error

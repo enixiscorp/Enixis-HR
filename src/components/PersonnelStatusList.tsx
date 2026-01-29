@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Badge } from './ui/badge'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/types/database'
-import { Clock, Coffee, Briefcase, Home, CheckCircle2 } from 'lucide-react'
+import { Clock, Coffee, Briefcase, Home, CheckCircle2, Activity, UserX } from 'lucide-react'
 
 interface PersonnelStatusListProps {
     profiles: Profile[]
@@ -42,6 +42,11 @@ export function PersonnelStatusList({ profiles }: PersonnelStatusListProps) {
         const [endH, endM] = schedule.end_time.split(':').map(Number)
         const startTime = startH * 60 + startM
         const endTime = endH * 60 + endM
+
+        // Handle explicit statuses
+        if (schedule.status === 'sick') return { status: 'off', label: 'Maladie', color: 'bg-red-100 text-red-600', icon: Activity }
+        if (schedule.status === 'absent') return { status: 'off', label: 'Absence', color: 'bg-orange-100 text-orange-600', icon: UserX }
+        if (schedule.status === 'off') return { status: 'off', label: 'Repos (Planifié)', color: 'bg-slate-100 text-slate-500', icon: Home }
 
         if (nowTime < startTime) return { status: 'scheduled', label: `Commence à ${schedule.start_time}`, color: 'bg-blue-100 text-blue-600', icon: Clock }
         if (nowTime > endTime) return { status: 'finished', label: 'Terminé', color: 'bg-slate-100 text-slate-500', icon: CheckCircle2 }

@@ -77,4 +77,68 @@ export class ReportGenerator {
 
         XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.xlsx`)
     }
+
+    static async generatePaySlip(
+        collaborator: { name: string; role: string; email: string },
+        period: string,
+        payments: any[],
+        logoUrl: string | null = null
+    ) {
+        const doc = new jsPDF()
+        const total = payments.reduce((sum, p) => sum + p.amount, 0)
+
+        // Header
+        if (logoUrl) {
+            try {
+                doc.addImage(logoUrl, 'PNG', 10, 10, 40, 15)
+            } catch (e) {
+                doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
+            }
+        } else {
+            doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
+        }
+
+        doc.setFontSize(14).text('BULLETIN DE PAIEMENT', 105, 20, { align: 'center' })
+
+        // Info Box
+        doc.setFontSize(10)
+        doc.rect(10, 35, 190, 30)
+        doc.text(`Collaborateur: ${collaborator.name}`, 15, 45)
+        doc.text(`Email: ${collaborator.email}`, 15, 52)
+        doc.text(`Poste: ${collaborator.role}`, 15, 59)
+
+        doc.text(`Période: ${period}`, 120, 45)
+        doc.text(`Date d'émission: ${new Date().toLocaleDateString('fr-FR')}`, 120, 52)
+
+        // Table
+        const tableColumn = ["Date", "Description", "Montant"]
+        const tableRows = payments.map(p => [
+            p.payment_date || p.date,
+            p.description || 'Prestation',
+            `${p.amount.toLocaleString()} CFA`
+        ])
+
+            ; (doc as any).autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 75,
+                theme: 'grid',
+                headStyles: { fillColor: [124, 58, 237] },
+                columnStyles: { 2: { halign: 'right' } }
+            })
+
+        // Total
+        const finalY = (doc as any).lastAutoTable.finalY + 10
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`TOTAL NET À PAYER:`, 130, finalY)
+        doc.text(`${total.toLocaleString()} CFA`, 195, finalY, { align: 'right' })
+
+        // Footer
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        doc.text('Ce document sert de preuve de paiement pour les prestations effectuées.', 105, 280, { align: 'center' })
+
+        doc.save(`Bulletin_Paie_${collaborator.name.replace(/\s+/g, '_')}_${period.replace(/\s+/g, '_')}.pdf`)
+    }
 }

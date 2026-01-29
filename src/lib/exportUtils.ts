@@ -13,74 +13,63 @@ declare module 'jspdf' {
 
 export const generatePaymentPDF = async (payment: any, profile: any, logoUrl: string | null) => {
     const doc = new jsPDF()
-    const pageWidth = doc.internal.pageSize.getWidth()
 
     // Header
     if (logoUrl) {
         try {
-            // In a real browser environment, we'd need to load the image first
-            // For now, we'll try to add it. If it fails (CORS or other), we skip.
-            doc.addImage(logoUrl, 'PNG', 15, 10, 30, 30)
+            doc.addImage(logoUrl, 'PNG', 10, 10, 40, 15)
         } catch (e) {
-            console.warn('Could not add logo to PDF:', e)
+            doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
         }
+    } else {
+        doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
     }
 
-    doc.setFontSize(22)
-    doc.setTextColor(75, 85, 99)
-    doc.text('PREUVE DE PAIEMENT', pageWidth / 2, 25, { align: 'center' })
+    doc.setFontSize(14).text('BULLETIN DE PAIEMENT', 105, 20, { align: 'center' })
 
+    // Info Box
     doc.setFontSize(10)
-    doc.text('Enixis Corp - Plateforme de Gestion RH', pageWidth / 2, 32, { align: 'center' })
+    doc.rect(10, 35, 190, 30)
+    doc.text(`Collaborateur: ${profile?.first_name} ${profile?.last_name}`, 15, 45)
+    doc.text(`Email: ${profile?.email || 'N/A'}`, 15, 52)
+    doc.text(`Poste: ${profile?.role || 'Collaborateur'}`, 15, 59)
 
-    // Divider
-    doc.setDrawColor(229, 231, 235)
-    doc.line(15, 45, pageWidth - 15, 45)
-
-    // Details Grid
-    doc.setFontSize(12)
-    doc.setTextColor(0)
-    doc.text('DÉTAILS DU COLLABORATEUR', 15, 55)
-
-    doc.setFontSize(10)
-    doc.text(`Nom: ${profile?.first_name} ${profile?.last_name}`, 15, 62)
-    doc.text(`Adresse: ${profile?.address || 'Non spécifiée'}`, 15, 67)
-    doc.text(`Rôle: ${profile?.role}`, 15, 72)
-
-    doc.setFontSize(12)
-    doc.text('DÉTAILS DU PAIEMENT', pageWidth / 2, 55)
-
-    doc.setFontSize(10)
-    doc.text(`Référence: #${payment.id.substring(0, 8)}`, pageWidth / 2, 62)
-    doc.text(`Date: ${format(new Date(payment.payment_date), 'dd MMMM yyyy', { locale: fr })}`, pageWidth / 2, 67)
-    doc.text(`Type: ${payment.payment_type}`, pageWidth / 2, 72)
-    doc.text(`Statut: ${payment.status === 'paid' ? 'Payé' : 'En attente'}`, pageWidth / 2, 77)
+    doc.text(`Référence: #${payment.id.substring(0, 8)}`, 120, 45)
+    doc.text(`Date d'émission: ${new Date().toLocaleDateString('fr-FR')}`, 120, 52)
+    doc.text(`Statut: ${payment.status === 'paid' ? 'PAYÉ' : 'EN ATTENTE'}`, 120, 59)
 
     // Table
-    doc.autoTable({
-        startY: 90,
-        head: [['Description', 'Période', 'Montant']],
-        body: [
-            [
-                `Prestation de service - ${payment.payment_type}`,
-                format(new Date(payment.payment_date), 'MMMM yyyy', { locale: fr }),
-                `${payment.amount} ${payment.currency || 'XOF'}`
-            ]
-        ],
-        theme: 'striped',
-        headStyles: { fillStyle: [124, 58, 237] } // Purple
-    })
+    const tableColumn = ["Date", "Description", "Montant"]
+    const tableRows = [
+        [
+            format(new Date(payment.payment_date), 'dd/MM/yyyy'),
+            `Prestation de service - ${payment.payment_type}`,
+            `${payment.amount.toLocaleString()} CFA`
+        ]
+    ]
+
+        ; (doc as any).autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 75,
+            theme: 'grid',
+            headStyles: { fillColor: [124, 58, 237] },
+            columnStyles: { 2: { halign: 'right' } }
+        })
+
+    // Total
+    const finalY = (doc as any).lastAutoTable.finalY + 10
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`TOTAL NET À PAYER:`, 130, finalY)
+    doc.text(`${payment.amount.toLocaleString()} CFA`, 195, finalY, { align: 'right' })
 
     // Footer
-    const finalY = (doc as any).lastAutoTable.finalY || 120
-    doc.setFontSize(10)
-    doc.text('Fait à Bruxelles, le ' + format(new Date(), 'dd/MM/yyyy'), 15, finalY + 20)
-
+    doc.setFont('helvetica', 'normal')
     doc.setFontSize(8)
-    doc.setTextColor(156, 163, 175)
-    doc.text('Ce document est une preuve de paiement générée automatiquement par Enixis HR.', 15, doc.internal.pageSize.getHeight() - 10)
+    doc.text('Ce document sert de preuve de paiement pour les prestations effectuées.', 105, 280, { align: 'center' })
 
-    doc.save(`Paiement_Enixis_${payment.id.substring(0, 8)}.pdf`)
+    doc.save(`Bulletin_Paie_${profile?.last_name}_${payment.id.substring(0, 8)}.pdf`)
 }
 
 export const generatePaymentExcel = (payment: any, profile: any) => {

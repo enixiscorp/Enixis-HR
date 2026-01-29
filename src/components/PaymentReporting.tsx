@@ -33,9 +33,12 @@ export function PaymentReporting() {
                 payment_date,
                 status,
                 user_id,
+                description,
                 profiles (
                     first_name,
-                    last_name
+                    last_name,
+                    role,
+                    email
                 )
             `)
             .gte('payment_date', dateRange.start)
@@ -56,7 +59,10 @@ export function PaymentReporting() {
         return data.map((p: any) => ({
             date: p.payment_date,
             collaboratorName: `${p.profiles.first_name} ${p.profiles.last_name}`,
-            period: 'Mensuel', // This could be dynamic based on your logic
+            collaboratorRole: p.profiles.role,
+            collaboratorEmail: p.profiles.email,
+            description: p.description,
+            period: 'Mensuel',
             amount: p.amount,
             status: p.status === 'paid' ? 'Payé' : 'En attente'
         }))
@@ -66,11 +72,19 @@ export function PaymentReporting() {
         setLoading(true)
         const data = await fetchPaymentData()
         if (data && data.length > 0) {
-            const title = selectedUser === 'all'
-                ? 'Rapport de Paiements Global'
-                : `Rapport de Paiements - ${data[0].collaboratorName}`
-
-            await ReportGenerator.generatePDF(title, data, settings?.logo_url)
+            if (selectedUser !== 'all') {
+                const user = data[0]
+                const period = `Du ${dateRange.start} au ${dateRange.end}`
+                await ReportGenerator.generatePaySlip(
+                    { name: user.collaboratorName, role: user.collaboratorRole, email: user.collaboratorEmail },
+                    period,
+                    data,
+                    settings?.logo_url
+                )
+            } else {
+                const title = 'Rapport de Paiements Global'
+                await ReportGenerator.generatePDF(title, data, settings?.logo_url)
+            }
         } else if (data) {
             alert('Aucun paiement trouvé pour cette période.')
         }

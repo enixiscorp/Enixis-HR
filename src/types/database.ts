@@ -16,7 +16,7 @@ export type UserStatus =
 
 export type PeriodType = 'daily' | 'monthly' | 'quarterly' | 'yearly'
 
-export type ScheduleStatus = 'scheduled' | 'completed' | 'cancelled'
+export type ScheduleStatus = 'scheduled' | 'completed' | 'cancelled' | 'off' | 'sick' | 'absent'
 
 export type PaymentType = 'weekly' | 'biweekly' | 'monthly'
 
