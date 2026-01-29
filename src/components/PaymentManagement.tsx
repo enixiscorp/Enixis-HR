@@ -52,25 +52,22 @@ import { ReportGenerator } from '@/lib/ReportGenerator'
 export function PaymentManagement() {
     const { user, profile } = useAuth()
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
-    const { payments, loading: paymentsLoading, error, refresh } = usePayments(undefined)
-    const { userRevenues, loading: revenuesLoading } = useRevenues(undefined)
+    const { payments, loading: paymentsLoading, error, refresh } = usePayments(isAdmin ? undefined : profile?.id)
+    const { revenues, loading: revenuesLoading } = useRevenues(isAdmin ? undefined : profile?.id)
+    const { prestations, loading: loadingPrestations } = usePrestations()
     const { toast } = useToast()
     const { formatCurrency } = useCurrency()
     const { settings } = usePlatformSettings() // For logo in PDF
+
+    const chartData = revenues.map(r => ({ date: r.date, amount: Number(r.amount) }))
 
     const [isMassPaying, setIsMassPaying] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
 
-    // Dialog & Edit states
-    const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [editingPayment, setEditingPayment] = useState<Payment | null>(null)
-    const [formData, setFormData] = useState({
-        amount: '',
-        description: '',
-        status: 'pending' as PaymentStatus,
-        payment_date: new Date().toISOString().split('T')[0]
-    })
+    // Edit states
+    const [isEditing, setIsEditing] = useState(false)
+    const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
     const handleExportPending = async () => {
@@ -177,21 +174,31 @@ export function PaymentManagement() {
                     </p>
                 </div>
                 {isAdmin && (
-                    <Button
-                        onClick={() => setIsMassPaying(!isMassPaying)}
-                        className={cn(
-                            "gap-2 transition-all hover:scale-105 shadow-lg",
-                            isMassPaying
-                                ? "bg-slate-800 hover:bg-slate-900 text-white"
-                                : "bg-purple-600 hover:bg-purple-700 text-white"
-                        )}
-                    >
-                        {isMassPaying ? (
-                            <>Retour à l'Historique</>
-                        ) : (
-                            <><Plus className="w-4 h-4" /> Paiement en Masse</>
-                        )}
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800"
+                            onClick={handleExportPending}
+                        >
+                            <FileDown className="w-4 h-4" />
+                            Exporter (Attente)
+                        </Button>
+                        <Button
+                            onClick={() => setIsMassPaying(!isMassPaying)}
+                            className={cn(
+                                "gap-2 transition-all hover:scale-105 shadow-lg",
+                                isMassPaying
+                                    ? "bg-slate-800 hover:bg-slate-900 text-white"
+                                    : "bg-purple-600 hover:bg-purple-700 text-white"
+                            )}
+                        >
+                            {isMassPaying ? (
+                                <>Retour à l'Historique</>
+                            ) : (
+                                <><Plus className="w-4 h-4" /> Paiement en Masse</>
+                            )}
+                        </Button>
+                    </div>
                 )}
             </div>
 
