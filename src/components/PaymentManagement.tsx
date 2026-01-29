@@ -50,10 +50,10 @@ import { usePrestations } from '@/hooks/usePrestations'
 import { ReportGenerator } from '@/lib/ReportGenerator'
 
 export function PaymentManagement() {
-    const { user, profile } = useAuth()
+    const { profile } = useAuth()
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
-    const { payments, loading: paymentsLoading, error, refresh } = usePayments(isAdmin ? undefined : profile?.id)
-    const { revenues, loading: revenuesLoading } = useRevenues(isAdmin ? undefined : profile?.id)
+    const { payments, loading: paymentsLoading } = usePayments(isAdmin ? undefined : profile?.id)
+    const { revenues } = useRevenues(isAdmin ? undefined : profile?.id)
     const { prestations, loading: loadingPrestations } = usePrestations()
     const { toast } = useToast()
     const { formatCurrency } = useCurrency()
@@ -63,7 +63,6 @@ export function PaymentManagement() {
 
     const [isMassPaying, setIsMassPaying] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
-    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid'>('all')
 
     // Edit states
     const [isEditing, setIsEditing] = useState(false)
