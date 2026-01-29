@@ -32,6 +32,7 @@ import { usePayments } from '@/hooks/usePayments'
 import { currencies } from '@/constants/currencies'
 import { AbsenceManagement } from '@/components/AbsenceManagement'
 import { PrestationManagement } from '@/components/PrestationManagement'
+import { MassScheduleEditor } from '@/components/MassScheduleEditor'
 import { Sidebar } from '@/components/Sidebar'
 import { PaymentManagement } from '@/components/PaymentManagement'
 
@@ -88,7 +89,10 @@ export default function DashboardPage() {
                                     {activeTab === 'overview' ? 'Tableau de bord' :
                                         activeTab === 'users' ? 'Gestion des Collaborateurs' :
                                             activeTab === 'payments' ? 'Gestion des Paiements' :
-                                                activeTab === 'absences' ? 'Demandes d\'absences' : 'Configuration Platforme'}
+                                                activeTab === 'schedules' ? 'Édition de Masse des Plannings' :
+                                                    activeTab === 'absences' ? 'Demandes d\'absences' :
+                                                        activeTab === 'prestations' ? 'Gestion des Services' :
+                                                            'Configuration Platforme'}
                                 </h1>
                             </div>
 
@@ -159,8 +163,8 @@ export default function DashboardPage() {
                                 </p>
                             </div>
 
-                            {/* Admin Filters */}
-                            {isAdmin && (
+                            {/* Super Admin Filters - Only Super Admin can view other profiles */}
+                            {isSuperAdmin && (
                                 <div className="flex flex-col sm:flex-row gap-4 bg-white/60 p-4 rounded-2xl border border-white/20 shadow-xl backdrop-blur-md">
                                     <div className="flex items-center gap-2 px-2">
                                         <Users className="w-5 h-5 text-purple-600" />
@@ -234,6 +238,10 @@ export default function DashboardPage() {
 
                         <TabsContent value="payments" className="animate-in fade-in slide-in-from-bottom-4">
                             <PaymentManagement />
+                        </TabsContent>
+
+                        <TabsContent value="schedules" className="animate-in fade-in slide-in-from-bottom-4">
+                            <MassScheduleEditor />
                         </TabsContent>
 
                         <TabsContent value="absences" className="animate-in fade-in slide-in-from-bottom-4">

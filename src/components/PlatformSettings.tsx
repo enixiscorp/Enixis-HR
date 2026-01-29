@@ -7,8 +7,6 @@ import { usePlatformSettings } from '@/hooks/usePlatformSettings'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Building2, Save, Image as ImageIcon, CheckCircle2, Sun, Moon, Monitor } from 'lucide-react'
 
-
-import { MassScheduleEditor } from './MassScheduleEditor'
 import { PaymentReporting } from './PaymentReporting'
 
 export function PlatformSettings() {
@@ -86,8 +84,6 @@ export function PlatformSettings() {
                     </form>
                 </CardContent>
             </Card>
-
-            <MassScheduleEditor />
 
             <PaymentReporting />
 
