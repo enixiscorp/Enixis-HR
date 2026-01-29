@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
+import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
@@ -34,12 +35,14 @@ export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
     const [searchTerm, setSearchTerm] = useState('')
 
     // Filter collaborators and admins (beneficiaries)
-    const beneficiaries = profiles.filter(p =>
-        (p.role === 'collaborator' || p.role === 'admin' || p.role === 'super_admin') &&
-        (p.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            p.email.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+    const beneficiaries = profiles.filter(p => {
+        const matchesRole = p.role === 'collaborator' || p.role === 'admin' || p.role === 'super_admin'
+        const matchesSearch = searchTerm.trim() === '' ||
+            p.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        return matchesRole && matchesSearch
+    })
 
     const handleUserToggle = (id: string) => {
         setSelectedUserIds(prev =>
@@ -172,15 +175,20 @@ export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
                                                         handleUserToggle(profile.id)
                                                         setSearchTerm('')
                                                     }}
-                                                    className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md cursor-pointer transition-colors"
+                                                    className="flex items-center gap-3 p-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-800 last:border-0"
                                                 >
-                                                    <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 font-bold text-xs">
+                                                    <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 font-bold text-xs shrink-0">
                                                         {profile.first_name?.[0]}{profile.last_name?.[0]}
                                                     </div>
                                                     <div className="flex-1 overflow-hidden">
-                                                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
-                                                            {profile.first_name} {profile.last_name}
-                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                                                {profile.first_name} {profile.last_name}
+                                                            </p>
+                                                            <Badge variant="outline" className="text-[9px] h-4 py-0 px-1 uppercase bg-slate-50 dark:bg-slate-800">
+                                                                {profile.role === 'super_admin' ? 'Super Admin' : profile.role === 'admin' ? 'Admin' : 'Collab'}
+                                                            </Badge>
+                                                        </div>
                                                         <p className="text-[10px] text-slate-500 truncate">{profile.email}</p>
                                                     </div>
                                                     <Plus className="w-3 h-3 text-slate-400" />

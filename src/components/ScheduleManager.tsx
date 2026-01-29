@@ -52,7 +52,7 @@ export function ScheduleManager() {
     })
 
     const filteredSchedules = schedules.filter(s => {
-        const nameMatch = `${s.profiles.first_name} ${s.profiles.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
+        const nameMatch = `${s.profiles?.first_name ?? ''} ${s.profiles?.last_name ?? ''}`.toLowerCase().includes(searchTerm.toLowerCase())
         const dateMatch = dateFilter ? s.date === dateFilter : true
         return nameMatch && dateMatch
     })

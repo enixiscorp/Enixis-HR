@@ -8,7 +8,9 @@ import {
     LogOut,
     Building2,
     Package,
-    CalendarDays
+    CalendarDays,
+    Clock,
+    TrendingUp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -33,8 +35,10 @@ export function Sidebar({
 
     const menuItems = [
         { id: 'overview', label: 'Tableau de bord', icon: LayoutDashboard, show: true },
+        { id: 'activity', label: 'Activité Directe', icon: Clock, show: true },
         { id: 'users', label: 'Collaborateurs', icon: Users, show: isAdmin },
         { id: 'payments', label: 'Paiements', icon: DollarSign, show: true },
+        { id: 'evolution', label: 'Mon Évolution', icon: TrendingUp, show: true },
         { id: 'schedules', label: 'Plannings', icon: CalendarDays, show: isAdmin },
         { id: 'absences', label: 'Demandes', icon: AlertTriangle, show: isAdmin },
         { id: 'prestations', label: 'Services', icon: Package, show: isAdmin },

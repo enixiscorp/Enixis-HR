@@ -21,9 +21,8 @@ import {
     SelectValue
 } from './ui/select'
 import { Label } from './ui/label'
-import { Users, UserPlus, Shield, ShieldAlert, Edit2, Trash2, AlertCircle, Clock } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
-import { PersonnelStatusList } from './PersonnelStatusList'
+import { Users, UserPlus, Shield, ShieldAlert, Edit2, Trash2, AlertCircle } from 'lucide-react'
+import { Tabs, TabsContent } from './ui/tabs'
 import { supabase } from '@/lib/supabase'
 import { UserRole, UserStatus, Profile } from '@/types/database'
 import { useAuth } from '@/contexts/AuthContext'
@@ -163,10 +162,6 @@ export function UserManagement() {
                             </p>
                         </div>
                     )}
-                    <TabsList className="bg-white/10 border border-white/10">
-                        <TabsTrigger value="list">Liste Complète</TabsTrigger>
-                        <TabsTrigger value="live">Activité (Direct)</TabsTrigger>
-                    </TabsList>
                 </div>
 
                 <TabsContent value="list" className="mt-0">
@@ -447,23 +442,6 @@ export function UserManagement() {
                             </form>
                         </DialogContent>
                     </Dialog>
-                </TabsContent>
-
-                <TabsContent value="live" className="mt-0">
-                    <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Clock className="w-6 h-6 text-purple-600" />
-                                Activité en Temps Réel
-                            </CardTitle>
-                            <CardDescription>
-                                Statut des collaborateurs basé sur le planning du jour.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <PersonnelStatusList profiles={collaborators} />
-                        </CardContent>
-                    </Card>
                 </TabsContent>
             </Tabs>
         </div>

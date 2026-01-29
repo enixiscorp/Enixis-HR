@@ -49,7 +49,11 @@ import { cn } from '@/lib/utils'
 import { usePrestations } from '@/hooks/usePrestations'
 import { ReportGenerator } from '@/lib/ReportGenerator'
 
-export function PaymentManagement() {
+interface PaymentManagementProps {
+    view?: 'history' | 'evolution' | 'all'
+}
+
+export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
     const { profile } = useAuth()
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
     const { payments, loading: paymentsLoading } = usePayments(isAdmin ? undefined : profile?.id)
@@ -69,7 +73,9 @@ export function PaymentManagement() {
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
-    const handleExportPending = async () => {
+    const [exportFormat, setExportFormat] = useState<'excel' | 'csv'>('excel')
+
+    const handleExportPending = async (format: 'excel' | 'csv' = 'excel') => {
         const pendingPayments = payments.filter(p => p.status === 'pending')
         if (pendingPayments.length === 0) {
             toast('Aucun paiement en attente à exporter.', 'info')
@@ -84,8 +90,12 @@ export function PaymentManagement() {
             status: 'En attente'
         }))
 
-        await ReportGenerator.generateExcel('Paiements_En_Attente', data)
-        toast(`${data.length} paiements exportés avec succès.`, 'success')
+        if (format === 'excel') {
+            await ReportGenerator.generateExcel('Paiements_En_Attente', data)
+        } else {
+            ReportGenerator.generateCSV('Paiements_En_Attente', data)
+        }
+        toast(`${data.length} paiements exportés en format ${format.toUpperCase()} avec succès.`, 'success')
     }
 
     const handleStatusUpdate = async (paymentId: string, newStatus: string) => {
@@ -173,19 +183,30 @@ export function PaymentManagement() {
                     </p>
                 </div>
                 {isAdmin && (
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800"
-                            onClick={handleExportPending}
-                        >
-                            <FileDown className="w-4 h-4" />
-                            Exporter (Attente)
-                        </Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="flex gap-1">
+                            <Select value={exportFormat} onValueChange={(v: any) => setExportFormat(v)}>
+                                <SelectTrigger className="w-[80px] h-10 border-purple-200 text-purple-700 bg-white/50 dark:bg-slate-800/50">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="excel">XLSX</SelectItem>
+                                    <SelectItem value="csv">CSV</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                variant="outline"
+                                className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800 h-10"
+                                onClick={() => handleExportPending(exportFormat)}
+                            >
+                                <FileDown className="w-4 h-4" />
+                                Exporter (Attente)
+                            </Button>
+                        </div>
                         <Button
                             onClick={() => setIsMassPaying(!isMassPaying)}
                             className={cn(
-                                "gap-2 transition-all hover:scale-105 shadow-lg",
+                                "gap-2 transition-all hover:scale-105 shadow-lg h-10",
                                 isMassPaying
                                     ? "bg-slate-800 hover:bg-slate-900 text-white"
                                     : "bg-purple-600 hover:bg-purple-700 text-white"
@@ -207,7 +228,7 @@ export function PaymentManagement() {
                 </div>
             )}
 
-            {!isMassPaying && (
+            {(view === 'history' || view === 'all') && !isMassPaying && (
                 <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg border border-slate-200/50 dark:border-slate-800/50">
                     <CardHeader>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -215,15 +236,17 @@ export function PaymentManagement() {
                                 <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Historique de Paiements</CardTitle>
                                 <CardDescription>Les derniers paiements effectués sur la plateforme.</CardDescription>
                             </div>
-                            <div className="relative w-full sm:w-64">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <Input
-                                    placeholder="Rechercher un collaborateur..."
-                                    className="pl-9 bg-white/50 dark:bg-slate-800/50"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
+                            {isAdmin && (
+                                <div className="relative w-full sm:w-64">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <Input
+                                        placeholder="Rechercher un collaborateur..."
+                                        className="pl-9 bg-white/50 dark:bg-slate-800/50"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -394,7 +417,7 @@ export function PaymentManagement() {
             )}
 
             {/* Analytical Curve */}
-            {!isMassPaying && (
+            {(view === 'evolution' || view === 'all') && !isMassPaying && (
                 <RevenueChart
                     data={chartData}
                     title={isAdmin ? "Revenu Global de la Plateforme" : "Mon Évolution Financière"}

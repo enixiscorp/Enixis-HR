@@ -78,6 +78,27 @@ export class ReportGenerator {
         XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.xlsx`)
     }
 
+    static generateCSV(title: string, data: PaymentReport[]) {
+        const worksheet = XLSX.utils.json_to_sheet(data.map(item => ({
+            'Date': item.date,
+            'Collaborateur': item.collaboratorName,
+            'Période': item.period,
+            'Montant (€)': item.amount,
+            'Statut': item.status
+        })))
+
+        const csv = XLSX.utils.sheet_to_csv(worksheet)
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement("a")
+        const url = URL.createObjectURL(blob)
+        link.setAttribute("href", url)
+        link.setAttribute("download", `${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.csv`)
+        link.style.visibility = 'hidden'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
+
     static async generatePaySlip(
         collaborator: { name: string; role: string; email: string },
         period: string,

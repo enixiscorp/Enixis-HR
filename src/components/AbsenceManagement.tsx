@@ -138,7 +138,7 @@ export function AbsenceManagement() {
                                             <div className="flex items-center gap-1.5 min-w-0">
                                                 <User className="w-4 h-4 text-purple-500 shrink-0" />
                                                 <span className="font-semibold text-slate-900 dark:text-white truncate">
-                                                    {request.profile?.first_name} {request.profile?.last_name}
+                                                    {request.profile?.first_name ?? ''} {request.profile?.last_name ?? ''}
                                                 </span>
                                             </div>
                                             <Badge variant="outline" className="text-[10px] h-5">
@@ -215,7 +215,7 @@ export function AbsenceManagement() {
                                     <tbody>
                                         {historyRequests.slice(0, 10).map(request => (
                                             <tr key={request.id} className="border-b border-slate-100 dark:border-slate-800">
-                                                <td className="py-2 px-4">{request.profile?.first_name} {request.profile?.last_name}</td>
+                                                <td className="py-2 px-4">{request.profile?.first_name ?? ''} {request.profile?.last_name ?? ''}</td>
                                                 <td className="py-2 px-4">{new Date(request.date).toLocaleDateString()}</td>
                                                 <td className="py-2 px-4 truncate">{getAbsenceTypeLabel(request.type)}</td>
                                                 <td className="py-2 px-4">

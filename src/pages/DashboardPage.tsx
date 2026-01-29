@@ -35,6 +35,7 @@ import { PrestationManagement } from '@/components/PrestationManagement'
 import { MassScheduleEditor } from '@/components/MassScheduleEditor'
 import { Sidebar } from '@/components/Sidebar'
 import { PaymentManagement } from '@/components/PaymentManagement'
+import { LiveActivityView } from '@/components/LiveActivityView'
 
 export default function DashboardPage() {
     const { user, profile, signOut } = useAuth()
@@ -87,12 +88,14 @@ export default function DashboardPage() {
                             <div className="min-w-0">
                                 <h1 className="text-xl font-bold text-slate-900 dark:text-white truncate">
                                     {activeTab === 'overview' ? 'Tableau de bord' :
-                                        activeTab === 'users' ? 'Gestion des Collaborateurs' :
-                                            activeTab === 'payments' ? 'Gestion des Paiements' :
-                                                activeTab === 'schedules' ? 'Édition de Masse des Plannings' :
-                                                    activeTab === 'absences' ? 'Demandes d\'absences' :
-                                                        activeTab === 'prestations' ? 'Gestion des Services' :
-                                                            'Configuration Platforme'}
+                                        activeTab === 'activity' ? 'Activité Directe' :
+                                            activeTab === 'users' ? 'Gestion des Collaborateurs' :
+                                                activeTab === 'payments' ? 'Historique des Paiements' :
+                                                    activeTab === 'evolution' ? 'Mon Évolution Financière' :
+                                                        activeTab === 'schedules' ? 'Édition de Masse des Plannings' :
+                                                            activeTab === 'absences' ? 'Demandes d\'absences' :
+                                                                activeTab === 'prestations' ? 'Gestion des Services' :
+                                                                    'Configuration Platforme'}
                                 </h1>
                             </div>
 
@@ -232,16 +235,24 @@ export default function DashboardPage() {
                             </div>
                         </TabsContent>
 
+                        <TabsContent value="activity" className="animate-in fade-in slide-in-from-bottom-4">
+                            <LiveActivityView />
+                        </TabsContent>
+
                         <TabsContent value="users" className="animate-in fade-in slide-in-from-bottom-4">
                             <UserManagement />
                         </TabsContent>
 
                         <TabsContent value="payments" className="animate-in fade-in slide-in-from-bottom-4">
-                            <PaymentManagement />
+                            <PaymentManagement view="history" />
+                        </TabsContent>
+
+                        <TabsContent value="evolution" className="animate-in fade-in slide-in-from-bottom-4">
+                            <PaymentManagement view="evolution" />
                         </TabsContent>
 
                         <TabsContent value="schedules" className="animate-in fade-in slide-in-from-bottom-4">
-                            <MassScheduleEditor />
+                            <MassScheduleEditor onNavigate={setActiveTab} />
                         </TabsContent>
 
                         <TabsContent value="absences" className="animate-in fade-in slide-in-from-bottom-4">

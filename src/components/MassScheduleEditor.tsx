@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
-import { useCollaborators } from '@/hooks/useCollaborators'
+import { useProfiles } from '@/hooks/useProfiles'
 import { supabase } from '@/lib/supabase'
-import { Calendar as CalendarIcon, Clock, Users, Coffee, Save, CheckCircle2 } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, Users, Coffee, Save, CheckCircle2, Search, X, Plus } from 'lucide-react'
 import {
     Select,
     SelectContent,
@@ -16,11 +16,22 @@ import {
 import { Checkbox } from './ui/checkbox'
 import { ScheduleManager } from './ScheduleManager'
 
-export function MassScheduleEditor() {
-    const { collaborators, loading } = useCollaborators()
+interface MassScheduleEditorProps {
+    onNavigate?: (tab: string) => void
+}
+
+export function MassScheduleEditor({ onNavigate }: MassScheduleEditorProps) {
+    const { profiles: collaborators } = useProfiles()
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [submitting, setSubmitting] = useState(false)
     const [success, setSuccess] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+
+    const filteredCollaborators = collaborators.filter(c =>
+        c.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
 
     const [scheduleData, setScheduleData] = useState({
         date: new Date().toISOString().split('T')[0],
@@ -96,13 +107,28 @@ export function MassScheduleEditor() {
         <>
             <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                        <CalendarIcon className="w-6 h-6 text-indigo-600" />
-                        Édition de Masse des Plannings
-                    </CardTitle>
-                    <CardDescription>
-                        Planifiez les horaires et les pauses pour plusieurs collaborateurs en une seule fois.
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                                <CalendarIcon className="w-6 h-6 text-indigo-600" />
+                                Édition de Masse des Plannings
+                            </CardTitle>
+                            <CardDescription>
+                                Planifiez les horaires et les pauses pour plusieurs collaborateurs en une seule fois.
+                            </CardDescription>
+                        </div>
+                        {onNavigate && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onNavigate('activity')}
+                                className="border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                            >
+                                <Clock className="w-4 h-4 mr-2" />
+                                Voir l'Activité Directe
+                            </Button>
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSave} className="space-y-8">
@@ -111,36 +137,107 @@ export function MassScheduleEditor() {
                             <div className="flex items-center justify-between">
                                 <Label className="text-lg font-semibold flex items-center gap-2 text-slate-900 dark:text-white">
                                     <Users className="w-5 h-5 text-indigo-500" />
-                                    Sélection des Collaborateurs
+                                    Bénéficiaires ({selectedUsers.length})
                                 </Label>
                                 <div className="flex items-center gap-2">
                                     <Checkbox
                                         id="select-all"
-                                        checked={selectedUsers.length === collaborators.length && collaborators.length > 0}
+                                        checked={collaborators.length > 0 && selectedUsers.length === collaborators.length}
                                         onCheckedChange={handleSelectAll}
                                     />
                                     <Label htmlFor="select-all" className="text-sm cursor-pointer">Tout sélectionner</Label>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto p-2 border border-slate-200 dark:border-slate-800 rounded-lg bg-white/30 dark:bg-slate-900/30">
-                                {loading ? (
-                                    <div className="col-span-full text-center py-4">Chargement...</div>
-                                ) : collaborators.length === 0 ? (
-                                    <div className="col-span-full text-center py-4 text-slate-500">Aucun collaborateur trouvé.</div>
-                                ) : (
-                                    collaborators.map(user => (
-                                        <div key={user.id} className="flex items-center gap-2 p-2 rounded hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <Checkbox
-                                                id={`user-${user.id}`}
-                                                checked={selectedUsers.includes(user.id)}
-                                                onCheckedChange={() => handleToggleUser(user.id)}
-                                            />
-                                            <Label htmlFor={`user-${user.id}`} className="text-sm cursor-pointer flex-1">
-                                                {user.first_name} {user.last_name}
-                                            </Label>
+
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                    placeholder="Chercher et ajouter un collaborateur..."
+                                    className="pl-9 bg-white/50 dark:bg-slate-800"
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                />
+                                {searchTerm.length > 0 && (
+                                    <div className="absolute top-full left-0 w-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-xl z-50 max-h-[300px] overflow-y-auto p-2 space-y-1">
+                                        <div className="flex justify-between items-center px-2 py-1 border-b border-slate-100 dark:border-slate-800 mb-1">
+                                            <span className="text-[10px] font-bold uppercase text-slate-500">Résultats</span>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 text-[10px] text-indigo-600 hover:text-indigo-700"
+                                                onClick={() => {
+                                                    const toAdd = filteredCollaborators.filter(c => !selectedUsers.includes(c.id)).map(c => c.id)
+                                                    setSelectedUsers(prev => [...prev, ...toAdd])
+                                                    setSearchTerm('')
+                                                }}
+                                            >
+                                                Tout ajouter
+                                            </Button>
                                         </div>
-                                    ))
+                                        {filteredCollaborators.filter(c => !selectedUsers.includes(c.id)).length === 0 ? (
+                                            <p className="text-xs text-slate-500 p-2 text-center">Aucun autre collaborateur trouvé</p>
+                                        ) : (
+                                            filteredCollaborators.filter(c => !selectedUsers.includes(c.id)).map(user => (
+                                                <div
+                                                    key={user.id}
+                                                    onClick={() => {
+                                                        handleToggleUser(user.id)
+                                                        setSearchTerm('')
+                                                    }}
+                                                    className="flex items-center gap-3 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md cursor-pointer transition-colors"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                                                        {(user.first_name?.[0] || '')}{(user.last_name?.[0] || '')}
+                                                    </div>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                                            {user.first_name ?? ''} {user.last_name ?? ''}
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-500 truncate">{user.email ?? 'Pas d\'email'}</p>
+                                                    </div>
+                                                    <Plus className="w-3 h-3 text-slate-400" />
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold uppercase text-slate-500 px-1">Sélectionnés ({selectedUsers.length})</Label>
+                                <div className="border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 h-[200px] overflow-y-auto p-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                    {selectedUsers.length === 0 ? (
+                                        <div className="col-span-full h-full flex flex-col items-center justify-center text-slate-400 text-sm italic">
+                                            Utilisez la recherche pour ajouter des collaborateurs.
+                                        </div>
+                                    ) : (
+                                        selectedUsers.map(id => {
+                                            const user = collaborators.find(c => c.id === id)
+                                            if (!user) return null
+                                            return (
+                                                <div
+                                                    key={id}
+                                                    className="flex items-center gap-3 p-2 bg-white dark:bg-slate-800 border border-indigo-100 dark:border-indigo-900/30 rounded-md shadow-sm"
+                                                >
+                                                    <div className="w-7 h-7 rounded-full bg-indigo-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                                                        {(user.first_name?.[0] || '')}{(user.last_name?.[0] || '')}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-semibold truncate">{user.first_name ?? ''} {user.last_name ?? ''}</p>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-6 w-6 text-slate-400 hover:text-red-500 shrink-0"
+                                                        onClick={() => handleToggleUser(id)}
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </Button>
+                                                </div>
+                                            )
+                                        })
+                                    )}
+                                </div>
                             </div>
                         </div>
 

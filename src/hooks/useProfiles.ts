@@ -1,15 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
-export interface Profile {
-    id: string
-    first_name: string
-    last_name: string
-    email: string
-    role: 'collaborator' | 'admin' | 'super_admin'
-    status: string
-    avatar_url: string | null
-}
+import { Profile } from '@/types/database'
 
 export function useProfiles() {
     const [profiles, setProfiles] = useState<Profile[]>([])
@@ -22,7 +14,7 @@ export function useProfiles() {
                 setLoading(true)
                 const { data, error } = await supabase
                     .from('profiles')
-                    .select('id, first_name, last_name, email, role, status, avatar_url')
+                    .select('*')
                     .order('first_name')
 
                 if (error) throw error

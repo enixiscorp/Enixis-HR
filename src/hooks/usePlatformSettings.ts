@@ -44,9 +44,10 @@ export function usePlatformSettings() {
             const { error } = await supabase
                 .from('platform_settings')
                 .upsert({
-                    id: latest?.id || settings?.id || undefined,
+                    id: latest?.id || settings?.id,
                     logo_url: url,
                     platform_name: 'Enixis HR',
+                    is_singleton: true,
                     updated_at: new Date().toISOString()
                 })
 

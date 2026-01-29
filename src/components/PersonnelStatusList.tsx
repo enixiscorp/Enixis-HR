@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { Badge } from './ui/badge'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/types/database'
-import { Clock, Coffee, Briefcase, Home, CheckCircle2, Activity, UserX } from 'lucide-react'
+import { Clock, Coffee, Briefcase, Home, CheckCircle2, Activity, UserX, MessageSquare } from 'lucide-react'
+import { Button } from './ui/button'
+import { ChatDialog } from './ChatDialog'
 
 interface PersonnelStatusListProps {
     profiles: Profile[]
@@ -13,6 +15,8 @@ type WorkStatus = 'working' | 'break' | 'off' | 'scheduled' | 'finished'
 export function PersonnelStatusList({ profiles }: PersonnelStatusListProps) {
     const [schedules, setSchedules] = useState<any[]>([])
     const [currentTime, setCurrentTime] = useState(new Date())
+    const [selectedReceiver, setSelectedReceiver] = useState<Profile | null>(null)
+    const [isChatOpen, setIsChatOpen] = useState(false)
 
     useEffect(() => {
         const fetchTodaySchedules = async () => {
@@ -98,18 +102,52 @@ export function PersonnelStatusList({ profiles }: PersonnelStatusListProps) {
                                     )}
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-slate-900 dark:text-white">{profile.first_name} {profile.last_name}</p>
+                                    <p className="font-semibold text-slate-900 dark:text-white">{profile.first_name ?? ''} {profile.last_name ?? ''}</p>
                                     <p className="text-xs text-slate-500 capitalize">{profile.role}</p>
                                 </div>
                             </div>
-                            <Badge className={`${statusInfo.color} border-none`}>
-                                <Icon className="w-3 h-3 mr-1" />
-                                {statusInfo.label}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                                <Badge className={`${statusInfo.color} border-none`}>
+                                    <Icon className="w-3 h-3 mr-1" />
+                                    {statusInfo.label}
+                                </Badge>
+                                {statusInfo.status === 'working' && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            setSelectedReceiver(profile)
+                                            setIsChatOpen(true)
+                                        }}
+                                        className="w-8 h-8 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 animate-pulse-border"
+                                        title="Démarrer une discussion"
+                                    >
+                                        <MessageSquare className="w-4 h-4" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     )
                 })}
             </div>
+
+            <ChatDialog
+                receiver={selectedReceiver}
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+            />
+
+            <style>{`
+                @keyframes pulse-border {
+                    0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+                }
+                .animate-pulse-border {
+                    animation: pulse-border 2s infinite;
+                    border-radius: 9999px;
+                }
+            `}</style>
         </div>
     )
 }
