@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { parse, format, isValid } from 'date-fns'
 
 export interface PaymentImportRow {
     email: string
@@ -12,6 +13,50 @@ export interface ImportValidationResult {
     valid: boolean
     data: PaymentImportRow[]
     errors: string[]
+}
+
+/**
+ * Helper to parse dates in various formats (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, etc.)
+ */
+function parseFlexibleDate(dateInput: any): string | null {
+    if (!dateInput) return null
+
+    // If it's already a JS Date object (common when cellDates: true in XLSX)
+    if (dateInput instanceof Date) {
+        return isValid(dateInput) ? format(dateInput, 'yyyy-MM-dd') : null
+    }
+
+    const dateStr = String(dateInput).trim()
+    if (!dateStr) return null
+
+    // Common formats to try
+    const formats = [
+        'yyyy-MM-dd',
+        'dd/MM/yyyy',
+        'MM/dd/yyyy',
+        'dd-MM-yyyy',
+        'dd.MM.yyyy',
+        'yyyy/MM/dd'
+    ]
+
+    for (const fmt of formats) {
+        try {
+            const parsedDate = parse(dateStr, fmt, new Date())
+            if (isValid(parsedDate)) {
+                return format(parsedDate, 'yyyy-MM-dd')
+            }
+        } catch (e) {
+            // Continue to next format
+        }
+    }
+
+    // Fallback: raw browser parsing for other ISO-like strings
+    const fallbackDate = new Date(dateStr)
+    if (isValid(fallbackDate)) {
+        return format(fallbackDate, 'yyyy-MM-dd')
+    }
+
+    return null
 }
 
 /**
@@ -61,7 +106,8 @@ export async function parseExcelFile(file: File): Promise<ImportValidationResult
         reader.onload = (e) => {
             try {
                 const data = e.target?.result
-                const workbook = XLSX.read(data, { type: 'binary' })
+                // cellDates: true helps XLSX convert date-formatted cells to JS Dates
+                const workbook = XLSX.read(data, { type: 'binary', cellDates: true })
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
                 const jsonData = XLSX.utils.sheet_to_json(firstSheet) as any[]
 
@@ -97,6 +143,7 @@ export async function parseCSVFile(file: File): Promise<ImportValidationResult> 
     return new Promise((resolve) => {
         Papa.parse(file, {
             header: true,
+            skipEmptyLines: true,
             complete: (results) => {
                 const result = validateImportData(results.data as any[])
                 resolve(result)
@@ -151,10 +198,10 @@ function validateImportData(rawData: any[]): ImportValidationResult {
             return
         }
 
-        // Validate date format
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-        if (!dateRegex.test(row.date_prestation)) {
-            errors.push(`Ligne ${lineNumber}: Format de date invalide (attendu: YYYY-MM-DD)`)
+        // Parse date flexibly
+        const normalizedDate = parseFlexibleDate(row.date_prestation)
+        if (!normalizedDate) {
+            errors.push(`Ligne ${lineNumber}: Date invalide ("${row.date_prestation}"). Utilisez un format standard (JJ/MM/AAAA ou AAAA-MM-JJ)`)
             return
         }
 
@@ -170,7 +217,7 @@ function validateImportData(rawData: any[]): ImportValidationResult {
             email: row.email.trim().toLowerCase(),
             prestation: row.prestation.trim(),
             montant: Number(row.montant),
-            date_prestation: row.date_prestation,
+            date_prestation: normalizedDate,
             statut: status as 'paid' | 'pending' | 'refused'
         })
     })

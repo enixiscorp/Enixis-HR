@@ -13,7 +13,7 @@ interface PaymentHistoryCardProps {
 }
 
 export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) {
-    const { payments, loading, totalPaid, pendingPayments } = usePayments(userId)
+    const { payments, loading, totalPaidAmount, pendingPayments } = usePayments(userId)
     const { formatCurrency } = useCurrency()
     const { settings } = usePlatformSettings()
     const { collaborators } = useCollaborators()
@@ -79,7 +79,7 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                     </CardTitle>
                     <div className="text-right">
                         <p className="text-sm text-slate-600 dark:text-slate-400">Total payé</p>
-                        <p className="text-xl font-bold text-green-600">{formatCurrency(totalPaid)}</p>
+                        <p className="text-xl font-bold text-green-600">{formatCurrency(totalPaidAmount)}</p>
                     </div>
                 </div>
                 {pendingPayments.length > 0 && (

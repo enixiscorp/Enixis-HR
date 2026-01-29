@@ -27,7 +27,6 @@ import {
     Users,
     AlertTriangle
 } from 'lucide-react'
-import { useRevenues } from '@/hooks/useRevenues'
 import { useSchedules } from '@/hooks/useSchedules'
 import { usePayments } from '@/hooks/usePayments'
 import { currencies } from '@/constants/currencies'
