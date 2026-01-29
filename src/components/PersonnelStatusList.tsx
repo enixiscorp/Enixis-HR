@@ -241,13 +241,13 @@ export function PersonnelStatusList({ profiles }: PersonnelStatusListProps) {
                                     </div>
 
                                     <div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Prochain jour de travail</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Planning prévu</p>
                                         {nextShift ? (
                                             <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 flex items-start gap-3">
                                                 <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400 mt-0.5" />
                                                 <div className="space-y-1">
                                                     <p className="text-sm font-semibold text-indigo-900 dark:text-white capitalize">
-                                                        {format(new Date(nextShift.date), 'EEEE d MMMM', { locale: fr })}
+                                                        {nextShift.date === new Date().toISOString().split('T')[0] ? "Aujourd'hui" : format(new Date(nextShift.date), 'EEEE d MMMM', { locale: fr })}
                                                     </p>
                                                     <div className="flex items-center text-xs text-indigo-700 dark:text-indigo-300">
                                                         <span>{nextShift.start_time}</span>
@@ -263,11 +263,18 @@ export function PersonnelStatusList({ profiles }: PersonnelStatusListProps) {
                                         )}
                                     </div>
 
-                                    {profile.last_seen_at && (
-                                        <p className="text-[10px] text-slate-400 text-right italic">
-                                            Dernière activité : {format(new Date(profile.last_seen_at), 'HH:mm', { locale: fr })}
-                                        </p>
-                                    )}
+                                    <div className="flex flex-col gap-1">
+                                        {profile.last_seen_at && (
+                                            <p className="text-[10px] text-slate-400 text-right italic">
+                                                Dernière activité : {format(new Date(profile.last_seen_at), 'HH:mm', { locale: fr })}
+                                            </p>
+                                        )}
+                                        {profile.last_logout_at && (
+                                            <p className="text-[10px] text-purple-400 text-right italic font-medium">
+                                                Déconnexion manuelle : {format(new Date(profile.last_logout_at), 'HH:mm', { locale: fr })}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </HoverCardContent>
                         </HoverCard>

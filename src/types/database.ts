@@ -32,6 +32,7 @@ export interface Profile {
     role: UserRole
     status: UserStatus
     last_seen_at?: string | null
+    last_logout_at?: string | null
     created_at: string
     updated_at: string
 }

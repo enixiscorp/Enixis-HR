@@ -89,6 +89,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const signOut = async () => {
+        if (user) {
+            try {
+                await supabase
+                    .from('profiles')
+                    .update({ last_logout_at: new Date().toISOString() })
+                    .eq('id', user.id)
+            } catch (err) {
+                console.error('Error updating logout timestamp:', err)
+            }
+        }
         await supabase.auth.signOut()
         setUser(null)
         setProfile(null)

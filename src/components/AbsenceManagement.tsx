@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
-import { Check, X, AlertCircle, Clock, Calendar, User, FileDown } from 'lucide-react'
+import { Check, X, AlertCircle, Clock, Calendar, User, FileDown, Trash2 } from 'lucide-react'
 import { AbsenceRequest, Profile } from '@/types/database'
 import { generateAbsencePDF } from '@/lib/exportUtils'
 import { usePlatformSettings } from '@/hooks/usePlatformSettings'
@@ -51,6 +51,23 @@ export function AbsenceManagement() {
             subscription.unsubscribe()
         }
     }, [])
+
+    const handleDelete = async (requestId: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande ?')) return
+
+        try {
+            const { error } = await supabase
+                .from('absence_requests')
+                .delete()
+                .eq('id', requestId)
+
+            if (error) throw error
+            fetchAllRequests()
+        } catch (error: any) {
+            console.error('Error deleting request:', error)
+            alert(`Erreur lors de la suppression : ${error.message || 'Erreur inconnue'}`)
+        }
+    }
 
     const handleAction = async (requestId: string, status: 'approved' | 'rejected') => {
         try {
@@ -187,6 +204,15 @@ export function AbsenceManagement() {
                                         >
                                             <X className="w-3.5 h-3.5 mr-1" /> Refuser
                                         </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                            onClick={() => handleDelete(request.id)}
+                                            title="Supprimer la demande"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
                                     </div>
                                 </div>
                             ))}
@@ -230,6 +256,15 @@ export function AbsenceManagement() {
                                                             onClick={() => generateAbsencePDF(request, request.profile, settings)}
                                                         >
                                                             <FileDown className="w-3.5 h-3.5 text-slate-500" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 w-7 p-0 text-slate-400 hover:text-red-600"
+                                                            onClick={() => handleDelete(request.id)}
+                                                            title="Supprimer de l'historique"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
                                                         </Button>
                                                     </div>
                                                 </td>

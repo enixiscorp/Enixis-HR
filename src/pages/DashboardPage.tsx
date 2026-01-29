@@ -256,12 +256,6 @@ export default function DashboardPage() {
                                 />
                             </div>
 
-                            {/* Revenue Evolution Chart for all users */}
-                            {selectedUserId && (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 delay-150">
-                                    <PaymentManagement view="evolution" />
-                                </div>
-                            )}
 
                             {/* Data Cards Grid */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

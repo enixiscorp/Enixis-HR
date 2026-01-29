@@ -25,7 +25,7 @@ export function useNextWorkDay(userIds: string[]) {
                 .from('schedules')
                 .select('user_id, date, start_time, end_time, status')
                 .in('user_id', userIds)
-                .gt('date', today)
+                .gte('date', today)
                 .neq('status', 'off')
                 .order('date', { ascending: true })
 

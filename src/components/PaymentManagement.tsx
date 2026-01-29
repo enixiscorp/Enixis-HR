@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { RevenueChart } from './RevenueChart'
+import { MassPaymentEditor } from './MassPaymentEditor'
 import { PaymentReporting } from './PaymentReporting'
 import { PaymentImporter } from './PaymentImporter'
 import { PaymentImportRow } from '@/lib/paymentImportUtils'
@@ -49,7 +50,6 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { usePrestations } from '@/hooks/usePrestations'
-import { ReportGenerator } from '@/lib/ReportGenerator'
 
 interface PaymentManagementProps {
     view?: 'history' | 'evolution' | 'all'
@@ -75,31 +75,8 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
     const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
-    const [exportFormat, setExportFormat] = useState<'excel' | 'csv'>('excel')
     const [isImporting, setIsImporting] = useState(false)
 
-    const handleExportPending = async (format: 'excel' | 'csv' = 'excel') => {
-        const pendingPayments = payments.filter(p => p.status === 'pending')
-        if (pendingPayments.length === 0) {
-            toast('Aucun paiement en attente à exporter.', 'info')
-            return
-        }
-
-        const data = pendingPayments.map(p => ({
-            date: p.payment_date,
-            collaboratorName: `${p.profiles?.first_name || ''} ${p.profiles?.last_name || ''}`,
-            period: 'N/A',
-            amount: p.amount,
-            status: 'En attente'
-        }))
-
-        if (format === 'excel') {
-            await ReportGenerator.generateExcel('Paiements_En_Attente', data)
-        } else {
-            ReportGenerator.generateCSV('Paiements_En_Attente', data)
-        }
-        toast(`${data.length} paiements exportés en format ${format.toUpperCase()} avec succès.`, 'success')
-    }
 
     const handleStatusUpdate = async (paymentId: string, newStatus: string) => {
         try {
@@ -237,15 +214,6 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                 {isAdmin && (
                     <div className="flex flex-col sm:flex-row gap-2">
                         <div className="flex gap-1">
-                            <Select value={exportFormat} onValueChange={(v: any) => setExportFormat(v)}>
-                                <SelectTrigger className="w-[80px] h-10 border-purple-200 text-purple-700 bg-white/50 dark:bg-slate-800/50">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="excel">XLSX</SelectItem>
-                                    <SelectItem value="csv">CSV</SelectItem>
-                                </SelectContent>
-                            </Select>
                             <Button
                                 variant="outline"
                                 className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-800 h-10"
@@ -253,14 +221,6 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                             >
                                 <Plus className="w-4 h-4" />
                                 Importer (Excel/CSV)
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="gap-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800 h-10"
-                                onClick={() => handleExportPending(exportFormat)}
-                            >
-                                <FileDown className="w-4 h-4" />
-                                Exporter (Attente)
                             </Button>
                         </div>
                         <Button
@@ -288,6 +248,12 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                         onImportComplete={handleImportComplete}
                         onCancel={() => setIsImporting(false)}
                     />
+                </div>
+            )}
+
+            {isMassPaying && isAdmin && (
+                <div className="mb-8">
+                    <MassPaymentEditor onCancel={() => setIsMassPaying(false)} />
                 </div>
             )}
 
