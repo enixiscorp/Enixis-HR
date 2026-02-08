@@ -136,8 +136,50 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
         setIsEditing(true)
     }
 
-    const handleUpdatePayment = async () => {
-        // ... (previous content kept, just adding handleImportComplete after it)
+    const handleUpdatePayment = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault()
+
+        if (!selectedPayment) return
+
+        setSubmitting(true)
+        try {
+            const updatedData = {
+                amount: Number(editAmount),
+                payment_type: editType,
+                payment_date: editDate,
+                description: editDescription,
+                status: editStatus
+            }
+
+            // Update the payment
+            const { error: updateError } = await supabase
+                .from('payments')
+                .update(updatedData)
+                .eq('id', selectedPayment.id)
+
+            if (updateError) throw updateError
+
+            // If status changed to 'paid', sync to revenues
+            if (editStatus === 'paid' && selectedPayment.status !== 'paid') {
+                const { error: revError } = await supabase.from('revenues').insert({
+                    user_id: selectedPayment.user_id,
+                    amount: Number(editAmount),
+                    date: editDate,
+                    period_type: 'monthly',
+                    description: editDescription || 'Paiement validé'
+                })
+                if (revError) console.error('Error syncing to revenues:', revError)
+            }
+
+            toast('Paiement mis à jour avec succès', 'success')
+            setIsEditing(false)
+            refreshPayments()
+        } catch (err: any) {
+            console.error('Error updating payment:', err)
+            toast(err.message || 'Erreur lors de la mise à jour', 'error')
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     const handleImportComplete = async (data: PaymentImportRow[]) => {
@@ -190,6 +232,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
             }
 
             toast(`${paymentsToInsert.length} paiements importés et synchronisés avec succès.`, "success")
+            refreshPayments()
             setIsImporting(false)
         } catch (err: any) {
             console.error('Error importing payments:', err)
@@ -261,7 +304,10 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
 
             {isMassPaying && isAdmin && (
                 <div className="mb-8">
-                    <MassPaymentEditor onCancel={() => setIsMassPaying(false)} />
+                    <MassPaymentEditor
+                        onCancel={() => setIsMassPaying(false)}
+                        onSuccess={() => refreshPayments()}
+                    />
                 </div>
             )}
 

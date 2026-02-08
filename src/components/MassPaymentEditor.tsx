@@ -20,7 +20,12 @@ import { useCurrency } from '@/contexts/CurrencyContext'
 import { supabase } from '@/lib/supabase'
 import { Users, Banknote, Calendar, CheckCircle2, Save, X, Search, Loader2, Plus } from 'lucide-react'
 
-export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
+interface MassPaymentEditorProps {
+    onCancel: () => void
+    onSuccess?: () => void
+}
+
+export function MassPaymentEditor({ onCancel, onSuccess }: MassPaymentEditorProps) {
     const { user: currentUser } = useAuth()
     const { profiles } = useProfiles()
     const { prestations, loading: loadingPrestations } = usePrestations()
@@ -101,6 +106,7 @@ export function MassPaymentEditor({ onCancel }: { onCancel: () => void }) {
             }
 
             toast(`${payments.length} paiements créés et synchronisés avec succès`, 'success')
+            if (onSuccess) onSuccess()
             onCancel()
         } catch (err: any) {
             console.error('Error creating payments:', err)
