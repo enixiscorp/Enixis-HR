@@ -30,7 +30,7 @@ export function usePayments(userId: string | undefined) {
             setLoading(true)
             let query = supabase
                 .from('payments')
-                .select('*, profiles:user_id(first_name, last_name, email, role, avatar_url), description')
+                .select('*, profiles:user_id(first_name, last_name, email, role, avatar_url)')
                 .order('payment_date', { ascending: false })
 
             if (userId) {
