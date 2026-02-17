@@ -68,18 +68,18 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
     }
 
     return (
-        <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+        <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
             <CardHeader>
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                    <CardTitle className="text-white flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                             <Wallet className="w-5 h-5 text-white" />
                         </div>
                         Historique des paiements
                     </CardTitle>
                     <div className="text-right">
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Total payé</p>
-                        <p className="text-xl font-bold text-green-600">{formatCurrency(totalPaidAmount)}</p>
+                        <p className="text-sm text-gray-400">Total payé</p>
+                        <p className="text-xl font-black text-cyan-400">{formatCurrency(totalPaidAmount)}</p>
                     </div>
                 </div>
                 {pendingPayments.length > 0 && (
@@ -102,7 +102,7 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                         {payments.map((payment) => (
                             <div
                                 key={payment.id}
-                                className="p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-shadow"
+                                className="p-4 rounded-lg bg-white/5 border border-cyan-500/10 hover:border-cyan-500/30 transition-all"
                             >
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div className="flex-1 space-y-1">
@@ -119,13 +119,13 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                                                 {payment.description}
                                             </p>
                                         )}
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
                                             <div className="flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" />
+                                                <Calendar className="w-3 h-3 text-cyan-500" />
                                                 {formatDate(payment.payment_date)}
                                             </div>
                                             <div className="flex items-center gap-1">
-                                                <Table className="w-3 h-3" />
+                                                <Table className="w-3 h-3 text-cyan-500" />
                                                 {getPaymentTypeLabel(payment.payment_type)}
                                             </div>
                                         </div>
@@ -135,21 +135,21 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="flex-1 sm:flex-none border-purple-200 dark:border-purple-900/50 h-9"
+                                                className="flex-1 sm:flex-none border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-400 h-9"
                                                 title="Exporter en PDF"
                                                 onClick={() => generatePaymentPDF(payment, currentCollaborator, settings?.logo_url || null)}
                                             >
-                                                <FileDown className="w-4 h-4 mr-2 text-purple-600" />
+                                                <FileDown className="w-4 h-4 mr-2" />
                                                 <span className="sm:hidden text-xs">PDF</span>
                                             </Button>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="flex-1 sm:flex-none border-green-200 dark:border-green-900/50 h-9"
+                                                className="flex-1 sm:flex-none border-blue-500/30 hover:bg-blue-500/10 text-blue-400 h-9"
                                                 title="Exporter en Excel"
                                                 onClick={() => generatePaymentExcel(payment, currentCollaborator)}
                                             >
-                                                <Table className="w-4 h-4 mr-2 text-green-600" />
+                                                <Table className="w-4 h-4 mr-2" />
                                                 <span className="sm:hidden text-xs">Excel</span>
                                             </Button>
                                         </div>

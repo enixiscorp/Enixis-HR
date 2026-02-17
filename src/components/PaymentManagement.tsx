@@ -254,8 +254,8 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Gestion des Paiements</h2>
-                    <p className="text-slate-600 dark:text-slate-400">
+                    <h2 className="text-3xl font-black text-white">Gestion des Paiements</h2>
+                    <p className="text-gray-400">
                         {isAdmin
                             ? "Administrez les revenus et bulletins de paye de l'équipe."
                             : "Consultez l'évolution de vos revenus et téléchargez vos bulletins."}
@@ -266,7 +266,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                         <div className="flex gap-1">
                             <Button
                                 variant="outline"
-                                className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-800 h-10"
+                                className="gap-2 border-cyan-500/20 text-gray-300 hover:bg-white/5 hover:text-cyan-400 h-10"
                                 onClick={() => setIsImporting(true)}
                             >
                                 <Plus className="w-4 h-4" />
@@ -278,8 +278,8 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                             className={cn(
                                 "gap-2 transition-all hover:scale-105 shadow-lg h-10",
                                 isMassPaying
-                                    ? "bg-slate-800 hover:bg-slate-900 text-white"
-                                    : "bg-purple-600 hover:bg-purple-700 text-white"
+                                    ? "bg-gray-800 hover:bg-gray-900 text-white"
+                                    : "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-cyan-500/20"
                             )}
                         >
                             {isMassPaying ? (
@@ -312,60 +312,60 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
 
             {isAdmin && !isMassPaying && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Card className="bg-white/40 backdrop-blur-sm border-white/20">
+                    <Card className="bg-gray-800/50 backdrop-blur border-cyan-500/20">
                         <CardContent className="p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase">Total Sélectionné</p>
-                                <p className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(filteredTotal)}</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase">Total Sélectionné</p>
+                                <p className="text-xl font-black text-white">{formatCurrency(filteredTotal)}</p>
                             </div>
-                            <DollarSign className="w-8 h-8 text-purple-600/20" />
+                            <DollarSign className="w-8 h-8 text-cyan-500/20" />
                         </CardContent>
                     </Card>
-                    <Card className="bg-white/40 backdrop-blur-sm border-white/20">
+                    <Card className="bg-gray-800/50 backdrop-blur border-cyan-500/20">
                         <CardContent className="p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase">Payé Sélectionné</p>
-                                <p className="text-xl font-bold text-emerald-600">{formatCurrency(filteredPaid)}</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase">Payé Sélectionné</p>
+                                <p className="text-xl font-black text-cyan-400">{formatCurrency(filteredPaid)}</p>
                             </div>
-                            <CheckCircle2 className="w-8 h-8 text-emerald-600/20" />
+                            <CheckCircle2 className="w-8 h-8 text-cyan-500/20" />
                         </CardContent>
                     </Card>
-                    <Card className="bg-white/40 backdrop-blur-sm border-white/20">
+                    <Card className="bg-gray-800/50 backdrop-blur border-cyan-500/20">
                         <CardContent className="p-4 flex items-center justify-between">
                             <div>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase">En Attente Sélectionné</p>
-                                <p className="text-xl font-bold text-amber-600">{formatCurrency(filteredPending)}</p>
+                                <p className="text-[10px] font-black text-gray-400 uppercase">En Attente Sélectionné</p>
+                                <p className="text-xl font-black text-amber-500">{formatCurrency(filteredPending)}</p>
                             </div>
-                            <RotateCw className="w-8 h-8 text-amber-600/20" />
+                            <RotateCw className="w-8 h-8 text-amber-500/20" />
                         </CardContent>
                     </Card>
                 </div>
             )}
 
             {(view === 'history' || view === 'all') && !isMassPaying && (
-                <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg border border-slate-200/50 dark:border-slate-800/50">
+                <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
                     <CardHeader>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
-                                <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Historique de Paiements</CardTitle>
-                                <CardDescription>Les derniers paiements effectués sur la plateforme.</CardDescription>
+                                <CardTitle className="text-xl font-black text-white">Historique de Paiements</CardTitle>
+                                <CardDescription className="text-gray-400">Les derniers paiements effectués sur la plateforme.</CardDescription>
                             </div>
                             {isAdmin && (
                                 <div className="flex items-center gap-2 w-full sm:w-auto">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-10 w-10 text-slate-400 hover:text-purple-600 shrink-0"
+                                        className="h-10 w-10 text-gray-400 hover:text-cyan-400 hover:bg-white/5 shrink-0"
                                         onClick={() => refreshPayments()}
                                         title="Rafraîchir les données"
                                     >
                                         <RotateCw className={cn("w-4 h-4", paymentsLoading && "animate-spin")} />
                                     </Button>
                                     <div className="relative w-full sm:w-64">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400" />
                                         <Input
                                             placeholder="Rechercher un collaborateur..."
-                                            className="pl-9 bg-white/50 dark:bg-slate-800/50"
+                                            className="pl-9 bg-black/20 border-cyan-500/10 text-white placeholder:text-gray-600 focus:border-cyan-500/50"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
@@ -377,8 +377,8 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                     <CardContent>
                         {paymentsLoading ? (
                             <div className="py-20 flex flex-col items-center justify-center gap-4">
-                                <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
-                                <p className="text-slate-500 font-medium animate-pulse">Chargement des transactions...</p>
+                                <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
+                                <p className="text-gray-500 font-medium animate-pulse">Chargement des transactions...</p>
                             </div>
                         ) : filteredPayments.length === 0 ? (
                             <div className="py-20 text-center space-y-2">
@@ -392,7 +392,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
+                                        <tr className="border-b border-cyan-500/20 text-gray-500 text-xs uppercase tracking-wider">
                                             <th className="py-4 px-2 font-semibold">Collaborateur</th>
                                             <th className="py-4 px-2 font-semibold">Prestation</th>
                                             <th className="py-4 px-2 font-semibold text-center">Statut</th>
@@ -401,19 +401,19 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                                             <th className="py-4 px-2 font-semibold text-center">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                                    <tbody className="divide-y divide-white/5">
                                         {filteredPayments.map(payment => (
-                                            <tr key={payment.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors group">
+                                            <tr key={payment.id} className="hover:bg-white/5 transition-colors group">
                                                 <td className="py-4 px-2">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-100 dark:border-purple-900/30 flex items-center justify-center text-purple-600 font-bold text-xs uppercase shadow-sm">
+                                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 font-black text-xs uppercase shadow-sm">
                                                             {payment.profiles?.first_name?.[0] || '?'}{payment.profiles?.last_name?.[0] || ''}
                                                         </div>
                                                         <div>
-                                                            <p className="font-semibold text-slate-900 dark:text-white text-sm">
+                                                            <p className="font-black text-white text-sm">
                                                                 {payment.profiles?.first_name || ''} {payment.profiles?.last_name || ''}
                                                             </p>
-                                                            <p className="text-[10px] text-slate-500 font-medium">
+                                                            <p className="text-[10px] text-gray-500 font-medium">
                                                                 {payment.profiles?.role === 'super_admin' ? 'Super Admin' :
                                                                     payment.profiles?.role === 'admin' ? 'Administrateur' : 'Collaborateur'}
                                                             </p>
@@ -428,7 +428,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                                                 <td className="py-4 px-2">
                                                     <div className="flex justify-center">
                                                         {payment.status === 'paid' ? (
-                                                            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] uppercase font-bold">
+                                                            <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px] uppercase font-black">
                                                                 Payé
                                                             </Badge>
                                                         ) : payment.status === 'refused' ? (
@@ -444,16 +444,16 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                                                 </td>
                                                 <td className="py-4 px-2 text-center">
                                                     <div className="flex flex-col items-center">
-                                                        <span className="text-slate-900 dark:text-white text-sm font-medium">
+                                                        <span className="text-white text-sm font-medium">
                                                             {format(new Date(payment.payment_date), 'dd MMM yyyy', { locale: fr })}
                                                         </span>
-                                                        <span className="text-[10px] text-slate-500">
+                                                        <span className="text-[10px] text-gray-500">
                                                             Prestation
                                                         </span>
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-2 text-right">
-                                                    <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                                                    <span className="font-black text-white bg-white/5 border border-cyan-500/10 px-2 py-1 rounded-lg">
                                                         {formatCurrency(payment.amount)}
                                                     </span>
                                                 </td>
@@ -464,7 +464,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="sm"
-                                                                    className="h-8 w-8 p-0 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                                                                    className="h-8 w-8 p-0 text-gray-400 hover:text-cyan-400 hover:bg-white/5"
                                                                     onClick={() => handleEditClick(payment)}
                                                                     title="Éditer"
                                                                 >
@@ -497,7 +497,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                                            className="h-8 w-8 p-0 text-gray-400 hover:text-cyan-400 hover:bg-white/5"
                                                             title="Envoyer par email"
                                                             onClick={() => handleSendEmail(payment)}
                                                         >
@@ -506,7 +506,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                            className="h-8 w-8 p-0 text-gray-400 hover:text-cyan-400 hover:bg-white/5"
                                                             title="Bulletin PDF"
                                                             onClick={() => generatePaymentPDF(
                                                                 {
@@ -557,22 +557,22 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
 
             {/* Edit Payment Dialog */}
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-white/10 shadow-2xl">
+                <DialogContent className="sm:max-w-[425px] bg-slate-900 border-cyan-500/20 text-white shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                            <Edit2 className="w-5 h-5 text-purple-600" />
+                        <DialogTitle className="text-xl font-black flex items-center gap-2 text-white">
+                            <Edit2 className="w-5 h-5 text-cyan-400" />
                             Modifier le Paiement
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-gray-400">
                             Ajustez les détails de la transaction pour {selectedPayment?.profiles?.first_name} {selectedPayment?.profiles?.last_name}.
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleUpdatePayment} className="space-y-6 py-4">
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="prestation" className="text-xs font-bold uppercase text-slate-500">Prestation</Label>
+                                <Label htmlFor="prestation" className="text-xs font-black uppercase text-gray-500">Prestation</Label>
                                 <Select value={editDescription} onValueChange={setEditDescription}>
-                                    <SelectTrigger className="h-11 bg-slate-50 dark:bg-slate-800/50">
+                                    <SelectTrigger className="h-11 bg-black/20 border-cyan-500/10 text-white">
                                         <SelectValue placeholder={loadingPrestations ? "Chargement..." : "Choisir une prestation"} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -629,28 +629,28 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="date" className="text-xs font-bold uppercase text-slate-500">Date de paiement</Label>
+                                <Label htmlFor="date" className="text-xs font-black uppercase text-gray-500">Date de paiement</Label>
                                 <div className="relative">
-                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400" />
                                     <Input
                                         id="date"
                                         type="date"
                                         value={editDate}
                                         onChange={(e) => setEditDate(e.target.value)}
                                         required
-                                        className="pl-9 h-11 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+                                        className="pl-9 h-11 bg-black/20 border-cyan-500/10 text-white"
                                     />
                                 </div>
                             </div>
                         </div>
                         <DialogFooter className="gap-2 sm:gap-0">
-                            <Button type="button" variant="outline" onClick={() => setIsEditing(false)} className="flex-1">
+                            <Button type="button" variant="outline" onClick={() => setIsEditing(false)} className="flex-1 border-white/10 hover:bg-white/5 text-white">
                                 Annuler
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={submitting}
-                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg hover:shadow-purple-500/20 transition-all"
+                                className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20 transition-all font-black"
                             >
                                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Mettre à jour'}
                             </Button>

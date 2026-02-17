@@ -113,15 +113,15 @@ export function AbsenceManagement() {
 
     return (
         <div className="space-y-6">
-            <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+            <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
                 <CardHeader>
                     <div className="flex items-center gap-2">
-                        <AlertCircle className="w-6 h-6 text-purple-600" />
+                        <AlertCircle className="w-6 h-6 text-cyan-400" />
                         <div>
-                            <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
+                            <CardTitle className="text-2xl font-black text-white">
                                 Demandes d'Absence en Attente
                             </CardTitle>
-                            <CardDescription>
+                            <CardDescription className="text-gray-400">
                                 Validez ou refusez les demandes des collaborateurs.
                             </CardDescription>
                         </div>
@@ -142,29 +142,29 @@ export function AbsenceManagement() {
                             </Button>
                         </div>
                     ) : pendingRequests.length === 0 ? (
-                        <div className="text-center py-12 text-slate-500 bg-slate-50/50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                            <Clock className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                        <div className="text-center py-12 text-gray-500 bg-white/5 rounded-xl border border-dashed border-cyan-500/20">
+                            <Clock className="w-12 h-12 mx-auto mb-4 opacity-20 text-cyan-500" />
                             <p>Aucune demande en attente</p>
                         </div>
                     ) : (
                         <div className="grid gap-4">
                             {pendingRequests.map(request => (
-                                <div key={request.id} className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div key={request.id} className="p-4 rounded-xl bg-white/5 border border-cyan-500/10 hover:border-cyan-500/30 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all">
                                     <div className="space-y-3 flex-1">
                                         <div className="flex items-center flex-wrap gap-2">
                                             <div className="flex items-center gap-1.5 min-w-0">
-                                                <User className="w-4 h-4 text-purple-500 shrink-0" />
-                                                <span className="font-semibold text-slate-900 dark:text-white truncate">
+                                                <User className="w-4 h-4 text-cyan-400 shrink-0" />
+                                                <span className="font-black text-white truncate">
                                                     {request.profile?.first_name ?? ''} {request.profile?.last_name ?? ''}
                                                 </span>
                                             </div>
-                                            <Badge variant="outline" className="text-[10px] h-5">
+                                            <Badge className="text-[10px] h-5 bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
                                                 {getAbsenceTypeLabel(request.type)}
                                             </Badge>
                                         </div>
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-slate-600 dark:text-slate-400">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs md:text-sm text-gray-400">
                                             <div className="flex items-center gap-1">
-                                                <Calendar className="w-3.5 h-3.5" />
+                                                <Calendar className="w-3.5 h-3.5 text-cyan-500" />
                                                 <span>{new Date(request.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</span>
                                             </div>
                                             {request.reason && (
@@ -178,9 +178,9 @@ export function AbsenceManagement() {
 
                                         {/* Admin Note Input */}
                                         <div className="mt-2 text-xs">
-                                            <label className="block text-slate-500 mb-1">Motif de validation (optionnel):</label>
+                                            <label className="block text-gray-400 mb-1">Motif de validation (optionnel):</label>
                                             <textarea
-                                                className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
+                                                className="w-full p-2 rounded-lg bg-black/20 border border-cyan-500/10 text-white placeholder:text-gray-600 focus:border-cyan-500/50 transition-all outline-none"
                                                 rows={2}
                                                 placeholder="Saisissez la raison de votre accord ou refus..."
                                                 value={adminNotes[request.id] || ''}
@@ -207,7 +207,7 @@ export function AbsenceManagement() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            className="h-9 w-9 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                            className="h-9 w-9 p-0 text-gray-500 hover:text-red-400 hover:bg-white/5"
                                             onClick={() => handleDelete(request.id)}
                                             title="Supprimer la demande"
                                         >
@@ -223,27 +223,27 @@ export function AbsenceManagement() {
 
             {
                 historyRequests.length > 0 && (
-                    <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg opacity-80">
+                    <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg opacity-80">
                         <CardHeader>
-                            <CardTitle className="text-lg font-semibold">Historique des Demandes</CardTitle>
+                            <CardTitle className="text-lg font-black text-white">Historique des Demandes</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm">
                                     <thead>
-                                        <tr className="border-b border-slate-200 dark:border-slate-700">
-                                            <th className="py-2 px-4">Collaborateur</th>
-                                            <th className="py-2 px-4">Date</th>
-                                            <th className="py-2 px-4">Type</th>
-                                            <th className="py-2 px-4">Statut</th>
+                                        <tr className="border-b border-cyan-500/20">
+                                            <th className="py-2 px-4 text-gray-400">Collaborateur</th>
+                                            <th className="py-2 px-4 text-gray-400">Date</th>
+                                            <th className="py-2 px-4 text-gray-400">Type</th>
+                                            <th className="py-2 px-4 text-gray-400">Statut</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {historyRequests.slice(0, 10).map(request => (
-                                            <tr key={request.id} className="border-b border-slate-100 dark:border-slate-800">
-                                                <td className="py-2 px-4">{request.profile?.first_name ?? ''} {request.profile?.last_name ?? ''}</td>
-                                                <td className="py-2 px-4">{new Date(request.date).toLocaleDateString()}</td>
-                                                <td className="py-2 px-4 truncate">{getAbsenceTypeLabel(request.type)}</td>
+                                            <tr key={request.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                                <td className="py-2 px-4 text-white font-medium">{request.profile?.first_name ?? ''} {request.profile?.last_name ?? ''}</td>
+                                                <td className="py-2 px-4 text-gray-300">{new Date(request.date).toLocaleDateString()}</td>
+                                                <td className="py-2 px-4 text-gray-300 truncate">{getAbsenceTypeLabel(request.type)}</td>
                                                 <td className="py-2 px-4">
                                                     <div className="flex items-center gap-2">
                                                         <Badge variant={request.status === 'approved' ? 'success' : 'destructive'} className="scale-75">
@@ -252,15 +252,15 @@ export function AbsenceManagement() {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-7 w-7 p-0"
+                                                            className="h-7 w-7 p-0 text-gray-400 hover:text-cyan-400"
                                                             onClick={() => generateAbsencePDF(request, request.profile, settings)}
                                                         >
-                                                            <FileDown className="w-3.5 h-3.5 text-slate-500" />
+                                                            <FileDown className="w-3.5 h-3.5" />
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-7 w-7 p-0 text-slate-400 hover:text-red-600"
+                                                            className="h-7 w-7 p-0 text-gray-500 hover:text-red-400"
                                                             onClick={() => handleDelete(request.id)}
                                                             title="Supprimer de l'historique"
                                                         >

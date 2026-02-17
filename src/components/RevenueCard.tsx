@@ -25,16 +25,16 @@ export default function RevenueCard({ userId }: RevenueCardProps) {
     }
 
     return (
-        <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+        <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
             <CardHeader>
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                    <CardTitle className="text-white flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                             <DollarSign className="w-5 h-5 text-white" />
                         </div>
                         Revenus
                     </CardTitle>
-                    <div className="flex items-center gap-2 text-2xl font-bold text-green-600">
+                    <div className="flex items-center gap-2 text-2xl font-black text-cyan-400">
                         <TrendingUp className="w-6 h-6" />
                         {formatCurrency(totalRevenue)}
                     </div>
@@ -48,8 +48,8 @@ export default function RevenueCard({ userId }: RevenueCardProps) {
                             key={period}
                             onClick={() => setSelectedPeriod(period)}
                             className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${selectedPeriod === period
-                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
-                                : 'bg-white/10 text-slate-700 dark:text-slate-300 hover:bg-white/20'
+                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20'
+                                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-cyan-300'
                                 }`}
                         >
                             {period === 'all' ? 'Tous' : period.charAt(0).toUpperCase() + period.slice(1)}
@@ -69,7 +69,7 @@ export default function RevenueCard({ userId }: RevenueCardProps) {
                         {displayRevenues.map((revenue) => (
                             <div
                                 key={revenue.id}
-                                className="p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 border border-slate-200 dark:border-slate-600 hover:shadow-md transition-shadow"
+                                className="p-4 rounded-lg bg-white/5 border border-cyan-500/10 hover:border-cyan-500/30 hover:bg-white/10 transition-all"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">

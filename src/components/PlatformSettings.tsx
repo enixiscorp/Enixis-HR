@@ -32,40 +32,40 @@ export function PlatformSettings() {
 
     return (
         <div className="space-y-6">
-            <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+            <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                        <Building2 className="w-6 h-6 text-pink-600" />
+                    <CardTitle className="text-2xl font-black flex items-center gap-2 text-white">
+                        <Building2 className="w-6 h-6 text-cyan-400" />
                         Personnalisation
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-gray-400">
                         Personnalisez l'apparence de Enixis HR pour tous les utilisateurs.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSave} className="space-y-6">
                         <div className="space-y-4">
-                            <Label htmlFor="logoUrl" className="text-lg font-semibold text-slate-900 dark:text-white">Logo de Enixis Corp</Label>
+                            <Label htmlFor="logoUrl" className="text-lg font-black text-white">Logo de Enixis Corp</Label>
                             <div className="flex flex-col md:flex-row gap-6 items-start">
-                                <div className="w-32 h-32 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center overflow-hidden">
+                                <div className="w-32 h-32 rounded-xl bg-black/20 border-2 border-dashed border-cyan-500/20 flex items-center justify-center overflow-hidden">
                                     {logoUrl ? (
                                         <img src={logoUrl} alt="Logo Preview" className="w-full h-full object-contain" />
                                     ) : (
-                                        <ImageIcon className="w-12 h-12 text-slate-400" />
+                                        <ImageIcon className="w-12 h-12 text-gray-600" />
                                     )}
                                 </div>
 
                                 <div className="flex-1 space-y-4 w-full">
                                     <div className="space-y-2">
-                                        <Label htmlFor="logoUrl" className="text-slate-700 dark:text-slate-300">URL du Logo (PNG/SVG recommandé)</Label>
+                                        <Label htmlFor="logoUrl" className="text-gray-400">URL du Logo (PNG/SVG recommandé)</Label>
                                         <Input
                                             id="logoUrl"
                                             placeholder="https://votre-stockage.com/logo.png"
                                             value={logoUrl}
                                             onChange={e => setLogoUrl(e.target.value)}
-                                            className="bg-white/50 dark:bg-slate-800/50"
+                                            className="bg-black/20 border-cyan-500/10 text-white placeholder:text-gray-600 focus:border-cyan-500/50"
                                         />
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-gray-500 italic">
                                             Conseil : Utilisez une URL directe vers votre logo. Il sera affiché dans l'entête et sur vos preuves de paiement PDF.
                                         </p>
                                     </div>
@@ -73,7 +73,7 @@ export function PlatformSettings() {
                                     <Button
                                         type="submit"
                                         disabled={saving}
-                                        className="bg-pink-600 hover:bg-pink-700 text-white"
+                                        className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20"
                                     >
                                         {saving ? 'Enregistrement...' : success ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Enregistré</> : <><Save className="w-4 h-4 mr-2" /> Enregistrer les modifications</>}
                                     </Button>
@@ -85,43 +85,43 @@ export function PlatformSettings() {
             </Card>
 
 
-            <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+            <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                        <Monitor className="w-6 h-6 text-purple-600" />
+                    <CardTitle className="text-2xl font-black flex items-center gap-2 text-white">
+                        <Monitor className="w-6 h-6 text-cyan-400" />
                         Préférences d'affichage
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-gray-400">
                         Choisissez le thème qui vous convient le mieux.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label className="text-slate-700 dark:text-slate-300">Thème de la plateforme</Label>
+                        <Label className="text-gray-400">Thème de la plateforme</Label>
                         <div className="grid grid-cols-3 gap-4">
                             <Button
                                 variant={theme === 'light' ? 'default' : 'outline'}
-                                className={`flex flex-col gap-2 h-20 ${theme === 'light' ? 'bg-purple-600' : ''}`}
+                                className={`flex flex-col gap-2 h-20 transition-all ${theme === 'light' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0' : 'bg-black/20 border-cyan-500/10 text-gray-400 hover:text-white'}`}
                                 onClick={() => setTheme('light')}
                             >
                                 <Sun className="w-6 h-6" />
-                                <span>Clair</span>
+                                <span className="text-xs font-black">Clair</span>
                             </Button>
                             <Button
                                 variant={theme === 'dark' ? 'default' : 'outline'}
-                                className={`flex flex-col gap-2 h-20 ${theme === 'dark' ? 'bg-purple-600' : ''}`}
+                                className={`flex flex-col gap-2 h-20 transition-all ${theme === 'dark' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0' : 'bg-black/20 border-cyan-500/10 text-gray-400 hover:text-white'}`}
                                 onClick={() => setTheme('dark')}
                             >
                                 <Moon className="w-6 h-6" />
-                                <span>Sombre</span>
+                                <span className="text-xs font-black">Sombre</span>
                             </Button>
                             <Button
                                 variant={theme === 'system' ? 'default' : 'outline'}
-                                className={`flex flex-col gap-2 h-20 ${theme === 'system' ? 'bg-purple-600' : ''}`}
+                                className={`flex flex-col gap-2 h-20 transition-all ${theme === 'system' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0' : 'bg-black/20 border-cyan-500/10 text-gray-400 hover:text-white'}`}
                                 onClick={() => setTheme('system')}
                             >
                                 <Monitor className="w-6 h-6" />
-                                <span>Système</span>
+                                <span className="text-xs font-black">Système</span>
                             </Button>
                         </div>
                     </div>

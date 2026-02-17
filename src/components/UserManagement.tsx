@@ -133,7 +133,7 @@ export function UserManagement() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     {/* Super Admin Notice */}
                     {isSuperAdmin && (
-                        <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 flex items-center gap-3 text-purple-800 shadow-sm animate-in fade-in slide-in-from-top-4">
+                        <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center gap-3 text-cyan-300 shadow-lg shadow-cyan-500/10 animate-in fade-in slide-in-from-top-4 w-full md:w-auto">
                             <ShieldAlert className="w-5 h-5 flex-shrink-0" />
                             <p className="text-xs font-medium">
                                 Mode Super Admin : Vous avez le contrôle total sur les Administrateurs et Collaborateurs.
@@ -143,14 +143,14 @@ export function UserManagement() {
                 </div>
 
                 <TabsContent value="list" className="mt-0">
-                    <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+                    <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
-                                <CardTitle className="text-2xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                                    <Users className="w-6 h-6 text-purple-600" />
+                                <CardTitle className="text-2xl font-black flex items-center gap-2 text-white">
+                                    <Users className="w-6 h-6 text-cyan-400" />
                                     Gestion des Utilisateurs
                                 </CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-gray-400">
                                     Consultez et gérez les comptes des collaborateurs et administrateurs.
                                 </CardDescription>
                             </div>
@@ -159,7 +159,7 @@ export function UserManagement() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-10 w-10 text-slate-400 hover:text-purple-600 shrink-0"
+                                    className="h-10 w-10 text-gray-400 hover:text-cyan-400 hover:bg-white/5 shrink-0"
                                     onClick={() => refreshUsers()}
                                     title="Rafraîchir les données"
                                 >
@@ -167,15 +167,15 @@ export function UserManagement() {
                                 </Button>
                                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                                     <DialogTrigger asChild>
-                                        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
+                                        <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20">
                                             <UserPlus className="w-4 h-4 mr-2" />
                                             Nouveau Compte
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-white/10">
+                                    <DialogContent className="sm:max-w-[425px] bg-slate-900 border-cyan-500/20 text-white">
                                         <DialogHeader>
-                                            <DialogTitle>Créer un nouveau compte</DialogTitle>
-                                            <DialogDescription>
+                                            <DialogTitle className="text-white">Créer un nouveau compte</DialogTitle>
+                                            <DialogDescription className="text-gray-400">
                                                 Configurez les accès d'un nouveau membre.
                                             </DialogDescription>
                                         </DialogHeader>
@@ -241,7 +241,7 @@ export function UserManagement() {
                                                 </Select>
                                             </div>
                                             <DialogFooter>
-                                                <Button type="submit" disabled={submitting} className="w-full bg-gradient-to-r from-purple-600 to-pink-600">
+                                                <Button type="submit" disabled={submitting} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20">
                                                     {submitting ? 'Création...' : 'Créer le compte'}
                                                 </Button>
                                             </DialogFooter>
@@ -258,7 +258,7 @@ export function UserManagement() {
                                     {/* Mobile View: Cards */}
                                     <div className="grid grid-cols-1 gap-4 md:hidden">
                                         {collaborators.map(user => (
-                                            <div key={user.id} className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-3">
+                                            <div key={user.id} className="p-4 rounded-xl bg-white/5 border border-cyan-500/10 space-y-3">
                                                 <div className="flex justify-between items-start">
                                                     <div>
                                                         <div className="font-bold text-slate-900 dark:text-white">
@@ -309,16 +309,16 @@ export function UserManagement() {
                                     <div className="hidden md:block overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
-                                                <tr className="border-b border-slate-200 dark:border-slate-700">
-                                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Nom</th>
-                                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Rôle</th>
-                                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">Statut</th>
-                                                    <th className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white text-right">Actions</th>
+                                                <tr className="border-b border-cyan-500/20">
+                                                    <th className="py-3 px-4 text-sm font-semibold text-white">Nom</th>
+                                                    <th className="py-3 px-4 text-sm font-semibold text-white">Rôle</th>
+                                                    <th className="py-3 px-4 text-sm font-semibold text-white">Statut</th>
+                                                    <th className="py-3 px-4 text-sm font-semibold text-white text-right">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {collaborators.map(user => (
-                                                    <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                                    <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
                                                         <td className="py-3 px-4">
                                                             <div className="font-medium text-slate-900 dark:text-white">
                                                                 {user.first_name} {user.last_name}
@@ -375,10 +375,10 @@ export function UserManagement() {
 
                     {/* Edit Dialog */}
                     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-white/10">
+                        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-cyan-500/20 text-white">
                             <DialogHeader>
-                                <DialogTitle>Modifier le profil</DialogTitle>
-                                <DialogDescription>
+                                <DialogTitle className="text-white">Modifier le profil</DialogTitle>
+                                <DialogDescription className="text-gray-400">
                                     Modifiez le rôle ou le statut de {selectedUser?.first_name} {selectedUser?.last_name}.
                                 </DialogDescription>
                             </DialogHeader>
@@ -386,7 +386,7 @@ export function UserManagement() {
                                 <div className="space-y-2">
                                     <Label htmlFor="edit-role">Rôle</Label>
                                     {selectedUser?.role === 'super_admin' && !isSuperAdmin ? (
-                                        <div className="p-3 rounded-lg bg-orange-50 border border-orange-200 flex items-center gap-2 text-orange-800">
+                                        <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center gap-2 text-cyan-400">
                                             <AlertCircle className="w-4 h-4" />
                                             <span className="text-xs">Profil Super Admin protégé.</span>
                                         </div>
@@ -395,10 +395,10 @@ export function UserManagement() {
                                             value={editData.role}
                                             onValueChange={(val: any) => setEditData({ ...editData, role: val })}
                                         >
-                                            <SelectTrigger className="bg-white/50 dark:bg-slate-800">
+                                            <SelectTrigger className="bg-white/5 border-cyan-500/20 text-white">
                                                 <SelectValue placeholder="Choisir un rôle" />
                                             </SelectTrigger>
-                                            <SelectContent>
+                                            <SelectContent className="bg-slate-900 border-cyan-500/20 text-white">
                                                 <SelectItem value="collaborator">Collaborateur</SelectItem>
                                                 <SelectItem value="admin">Administrateur</SelectItem>
                                                 <SelectItem value="super_admin">Super Administrateur</SelectItem>
@@ -412,10 +412,10 @@ export function UserManagement() {
                                         value={editData.status}
                                         onValueChange={(val: any) => setEditData({ ...editData, status: val })}
                                     >
-                                        <SelectTrigger className="bg-white/50 dark:bg-slate-800">
+                                        <SelectTrigger className="bg-white/5 border-cyan-500/20 text-white">
                                             <SelectValue placeholder="Choisir un statut" />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="bg-slate-900 border-cyan-500/20 text-white">
                                             <SelectItem value="active">Actif</SelectItem>
                                             <SelectItem value="on_leave">En Congé</SelectItem>
                                             <SelectItem value="suspended">Suspendu</SelectItem>
@@ -424,7 +424,7 @@ export function UserManagement() {
                                     </Select>
                                 </div>
                                 <DialogFooter>
-                                    <Button type="submit" disabled={submitting} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                                    <Button type="submit" disabled={submitting} className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20">
                                         {submitting ? 'Mise à jour...' : 'Enregistrer les modifications'}
                                     </Button>
                                 </DialogFooter>

@@ -38,7 +38,7 @@ import { PaymentManagement } from '@/components/PaymentManagement'
 import { LiveActivityView } from '@/components/LiveActivityView'
 
 export default function DashboardPage() {
-    const { user, profile, signOut } = useAuth()
+    const { user, profile, signOut, isAdmin, isSuperAdmin } = useAuth()
     const { currency, setCurrency, formatCurrency } = useCurrency()
     const { settings } = usePlatformSettings()
 
@@ -101,7 +101,7 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-slate-900 flex">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white flex">
             {/* Sidebar Navigation */}
             <Sidebar
                 activeTab={activeTab}
@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
             <div className="flex-1 flex flex-col min-w-0 ml-16">
                 {/* Header */}
-                <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-40">
+                <header className="bg-black/40 backdrop-blur-xl border-b border-cyan-500/20 shadow-sm sticky top-0 z-40">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="min-w-0">
@@ -157,9 +157,9 @@ export default function DashboardPage() {
                                             {profile?.role === 'super_admin' ? 'Super Admin' : profile?.role || '...'}
                                         </p>
                                     </div>
-                                    <Avatar className="w-9 h-9 md:w-10 md:h-10 border-2 border-purple-500 shrink-0">
+                                    <Avatar className="w-9 h-9 md:w-10 md:h-10 border-2 border-cyan-500 shadow-lg shadow-cyan-500/20 shrink-0">
                                         <AvatarImage src={profile?.avatar_url || undefined} />
-                                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-xs font-semibold">
+                                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-white text-xs font-semibold">
                                             {getInitials()}
                                         </AvatarFallback>
                                     </Avatar>
@@ -200,10 +200,10 @@ export default function DashboardPage() {
 
                             {/* Super Admin Filters - Only Super Admin can view other profiles */}
                             {isSuperAdmin && (
-                                <div className="flex flex-col sm:flex-row gap-4 bg-white/60 p-4 rounded-2xl border border-white/20 shadow-xl backdrop-blur-md">
+                                <div className="flex flex-col sm:flex-row gap-4 bg-gray-800/50 p-4 rounded-2xl border border-cyan-500/20 shadow-xl backdrop-blur-md">
                                     <div className="flex items-center gap-2 px-2">
-                                        <Users className="w-5 h-5 text-purple-600" />
-                                        <span className="font-semibold text-slate-700">Vue Collaborateur :</span>
+                                        <Users className="w-5 h-5 text-cyan-400" />
+                                        <span className="font-semibold text-gray-200">Vue Collaborateur :</span>
                                     </div>
                                     <CollaboratorSelect
                                         value={selectedUserId || ''}
@@ -214,7 +214,7 @@ export default function DashboardPage() {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => setSelectedUserId(user?.id)}
-                                            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                            className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10"
                                         >
                                             Retour à ma vue
                                         </Button>

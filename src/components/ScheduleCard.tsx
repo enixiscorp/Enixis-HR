@@ -96,21 +96,21 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
 
     return (
         <>
-            <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-lg">
+            <Card className="border-cyan-500/20 bg-gray-800/50 backdrop-blur shadow-lg">
                 <CardHeader>
                     <div className="flex items-center justify-between">
-                        <CardTitle className="text-slate-900 dark:text-white flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                        <CardTitle className="text-white flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
                                 <Calendar className="w-5 h-5 text-white" />
                             </div>
                             Horaires & Absences
                         </CardTitle>
                         <div className="flex items-center gap-2">
-                            <Badge variant="default" className="text-sm">
+                            <Badge className="text-sm bg-cyan-500/10 text-cyan-400 border-cyan-500/30">
                                 {upcomingSchedules.length} à venir
                             </Badge>
                             {/* Collaborators can now request absences via (+) */}
-                            <Button size="sm" onClick={handleAddAbsence} className="h-8 w-8 p-0 bg-purple-600 hover:bg-purple-700" title="Demander une absence">
+                            <Button size="sm" onClick={handleAddAbsence} className="h-8 w-8 p-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20" title="Demander une absence">
                                 <Plus className="w-4 h-4" />
                             </Button>
                             {isEditable && (
@@ -137,7 +137,7 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
                                 return (
                                     <div
                                         key={date}
-                                        className="p-4 rounded-lg bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow group relative overflow-hidden"
+                                        className="p-4 rounded-lg bg-white/5 border border-cyan-500/10 hover:border-cyan-500/30 transition-all group relative overflow-hidden"
                                     >
                                         <div className="mb-2 flex justify-between items-center">
                                             <div className="flex items-center gap-2">
@@ -177,12 +177,12 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
                                             {/* Show absence requests with blinking status */}
                                             {dayRequests.map(request => (
                                                 <div key={request.id} className="flex items-center justify-between text-sm pl-6">
-                                                    <div className="flex items-center gap-2 font-medium text-purple-600 dark:text-purple-400">
+                                                    <div className="flex items-center gap-2 font-medium text-cyan-400">
                                                         <AlertCircle className="w-3 h-3" />
                                                         <span>{getAbsenceTypeLabel(request.type)}</span>
                                                         <Badge
                                                             variant={request.status === 'pending' ? 'secondary' : request.status === 'approved' ? 'success' : 'destructive'}
-                                                            className={`scale-75 origin-left ${request.status === 'pending' ? 'animate-[pulse_1.5s_infinite] bg-purple-100 dark:bg-purple-900/30' : ''}`}
+                                                            className={`scale-75 origin-left ${request.status === 'pending' ? 'animate-[pulse_1.5s_infinite] bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : ''}`}
                                                         >
                                                             {request.status === 'pending' ? 'En attente' : request.status === 'approved' ? 'Approuvé' : 'Refusé'}
                                                         </Badge>

@@ -51,7 +51,7 @@ export function Sidebar({
     return (
         <aside
             className={cn(
-                "fixed left-0 top-0 h-full z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50 shadow-2xl",
+                "fixed left-0 top-0 h-full z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] bg-black/60 backdrop-blur-xl border-r border-cyan-500/20 shadow-2xl",
                 isHovered ? "w-64" : "w-16"
             )}
             onMouseEnter={() => setIsHovered(true)}
@@ -60,7 +60,7 @@ export function Sidebar({
             <div className="flex flex-col h-full py-6">
                 {/* Logo Section */}
                 <div className="px-4 mb-10 flex items-center gap-4 overflow-hidden">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/50 shrink-0">
                         {logoUrl ? (
                             <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
                         ) : (
@@ -71,7 +71,7 @@ export function Sidebar({
                         "transition-opacity duration-300 whitespace-nowrap",
                         isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <h1 className="text-xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                             HERIX
                         </h1>
                         <p className="text-[10px] text-slate-500 dark:text-slate-600">by Enixis</p>
@@ -87,8 +87,8 @@ export function Sidebar({
                             className={cn(
                                 "w-full flex items-center gap-4 p-3 rounded-xl transition-all duration-200 group relative",
                                 activeTab === item.id
-                                    ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
-                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    ? "bg-cyan-500/10 text-cyan-400"
+                                    : "text-slate-400 hover:bg-slate-800 hover:text-cyan-300"
                             )}
                         >
                             <div className="relative">
@@ -117,7 +117,7 @@ export function Sidebar({
 
                             {/* Active Indicator Line */}
                             {activeTab === item.id && (
-                                <div className="absolute left-0 w-1 h-6 bg-purple-600 rounded-r-full" />
+                                <div className="absolute left-0 w-1 h-6 bg-cyan-500 rounded-r-full shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
                             )}
 
                             {/* Tooltip for collapsed state */}
