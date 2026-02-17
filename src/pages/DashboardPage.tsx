@@ -193,7 +193,7 @@ export default function DashboardPage() {
                                 </h2>
                                 <p className="text-slate-600 dark:text-slate-400">
                                     {isAdmin
-                                        ? "Interface de gestion administrative Enixis HR."
+                                        ? "Interface de gestion administrative HERIX."
                                         : "Consultez vos revenus et horaires de travail."}
                                 </p>
                             </div>

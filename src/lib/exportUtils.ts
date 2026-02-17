@@ -11,14 +11,35 @@ declare module 'jspdf' {
     }
 }
 
+const getBase64Image = async (url: string): Promise<string | null> => {
+    try {
+        const response = await fetch(url)
+        const blob = await response.blob()
+        return new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result as string)
+            reader.onerror = () => resolve(null)
+            reader.readAsDataURL(blob)
+        })
+    } catch (e) {
+        console.error('Error fetching image as base64:', e)
+        return null
+    }
+}
+
 export const generatePaymentPDF = async (payment: any, profile: any, logoUrl: string | null) => {
     const doc = new jsPDF()
 
     // Header
     if (logoUrl) {
-        try {
-            doc.addImage(logoUrl, 'PNG', 10, 10, 40, 15)
-        } catch (e) {
+        const base64Logo = await getBase64Image(logoUrl)
+        if (base64Logo) {
+            try {
+                doc.addImage(base64Logo, 'PNG', 10, 10, 40, 15)
+            } catch (e) {
+                doc.setFontSize(18).text('HERIX - Plateforme de Gestion RH & Préposés aux Bénéficiaires', 10, 20)
+            }
+        } else {
             doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
         }
     } else {
@@ -69,24 +90,34 @@ export const generatePaymentPDF = async (payment: any, profile: any, logoUrl: st
     doc.setFontSize(8)
     doc.text('Ce document sert de preuve de paiement pour les prestations effectuées.', 105, 280, { align: 'center' })
 
-    doc.save(`Bulletin_Paie_${profile?.last_name}_${payment.id.substring(0, 8)}.pdf`)
+    try {
+        doc.save(`Bulletin_Paie_${profile?.last_name}_${payment.id.substring(0, 8)}.pdf`)
+    } catch (e) {
+        console.error('Error saving PDF:', e)
+        alert('Erreur lors de la génération du PDF.')
+    }
 }
 
 export const generatePaymentExcel = (payment: any, profile: any) => {
-    const data = [{
-        ID: payment.id,
-        Collaborateur: `${profile?.first_name} ${profile?.last_name}`,
-        Role: profile?.role,
-        Montant: payment.amount,
-        Date: payment.payment_date,
-        Type: payment.payment_type,
-        Statut: payment.status
-    }]
+    try {
+        const data = [{
+            ID: payment.id,
+            Collaborateur: `${profile?.first_name} ${profile?.last_name}`,
+            Role: profile?.role,
+            Montant: payment.amount,
+            Date: payment.payment_date,
+            Type: payment.payment_type,
+            Statut: payment.status
+        }]
 
-    const ws = XLSX.utils.json_to_sheet(data)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Paiement')
-    XLSX.writeFile(wb, `Paiement_Enixis_${payment.id.substring(0, 8)}.xlsx`)
+        const ws = XLSX.utils.json_to_sheet(data)
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, 'Paiement')
+        XLSX.writeFile(wb, `Paiement_HERIX_${payment.id.substring(0, 8)}.xlsx`)
+    } catch (err) {
+        console.error('Error generating Excel:', err)
+        alert('Erreur lors de la génération du fichier Excel.')
+    }
 }
 
 export const generateAbsencePDF = async (request: any, profile: any, settings: any) => {
@@ -96,10 +127,13 @@ export const generateAbsencePDF = async (request: any, profile: any, settings: a
 
     // Header
     if (settings?.logo_url) {
-        try {
-            doc.addImage(settings.logo_url, 'PNG', 15, 10, 30, 30)
-        } catch (e) {
-            console.warn('Could not add logo to PDF:', e)
+        const base64Logo = await getBase64Image(settings.logo_url)
+        if (base64Logo) {
+            try {
+                doc.addImage(base64Logo, 'PNG', 15, 10, 30, 30)
+            } catch (e) {
+                console.warn('Could not add logo to PDF:', e)
+            }
         }
     }
 
@@ -108,7 +142,7 @@ export const generateAbsencePDF = async (request: any, profile: any, settings: a
     doc.text('CONFIRMATION DE DEMANDE', pageWidth / 2, 25, { align: 'center' })
 
     doc.setFontSize(10)
-    doc.text('Enixis Corp - Plateforme de Gestion RH', pageWidth / 2, 32, { align: 'center' })
+    doc.text('HERIX - Plateforme de Gestion RH & Préposés aux Bénéficiaires', pageWidth / 2, 32, { align: 'center' })
 
     // Divider
     doc.setDrawColor(229, 231, 235)
@@ -175,9 +209,6 @@ export const generateAbsencePDF = async (request: any, profile: any, settings: a
     doc.setFont('helvetica', 'bold')
     doc.text(stampText, stampX, stampY, { angle: -15 })
 
-    // Drawing a rectangle manually rotated is complex in jsPDF without internal calls, 
-    // so we'll just keep the text with the angle which looks like a stamp.
-
     doc.setGState(new (doc as any).GState({ opacity: 1 }))
 
     // Footer
@@ -187,7 +218,12 @@ export const generateAbsencePDF = async (request: any, profile: any, settings: a
 
     doc.setFontSize(8)
     doc.setTextColor(156, 163, 175)
-    doc.text('Ce document est une confirmation officielle générée par Enixis HR.', 15, pageHeight - 10)
+    doc.text('Ce document est une confirmation officielle générée par HERIX.', 15, pageHeight - 10)
 
-    doc.save(`Confirmation_Absence_${request.id.substring(0, 8)}.pdf`)
+    try {
+        doc.save(`Confirmation_Absence_${request.id.substring(0, 8)}.pdf`)
+    } catch (e) {
+        console.error('Error saving PDF:', e)
+        alert('Erreur lors de la génération du PDF d\'absence.')
+    }
 }

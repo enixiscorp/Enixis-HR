@@ -85,8 +85,8 @@ export function PaymentReporting() {
                 const title = 'Rapport de Paiements Global'
                 await ReportGenerator.generatePDF(title, data, settings?.logo_url)
             }
-        } else if (data) {
-            alert('Aucun paiement trouvé pour cette période.')
+        } else {
+            alert('Aucun paiement trouvé pour cette période ou ce collaborateur.')
         }
         setLoading(false)
     }

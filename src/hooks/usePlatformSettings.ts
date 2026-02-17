@@ -46,9 +46,11 @@ export function usePlatformSettings() {
                 .upsert({
                     id: latest?.id || settings?.id,
                     logo_url: url,
-                    platform_name: 'Enixis HR',
+                    platform_name: 'HERIX',
                     is_singleton: true,
                     updated_at: new Date().toISOString()
+                }, {
+                    onConflict: 'is_singleton'
                 })
 
             if (error) throw error

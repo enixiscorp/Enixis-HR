@@ -74,7 +74,7 @@ export function Sidebar({
                         <h1 className="text-xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                             HERIX
                         </h1>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-600">by Enixis</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-600">Gestion RH & Préposés</p>
                     </div>
                 </div>
 

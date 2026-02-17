@@ -12,6 +12,22 @@ interface PaymentReport {
 }
 
 export class ReportGenerator {
+    static async getBase64Image(url: string): Promise<string | null> {
+        try {
+            const response = await fetch(url)
+            const blob = await response.blob()
+            return new Promise((resolve) => {
+                const reader = new FileReader()
+                reader.onloadend = () => resolve(reader.result as string)
+                reader.onerror = () => resolve(null)
+                reader.readAsDataURL(blob)
+            })
+        } catch (e) {
+            console.error('Error fetching image as base64:', e)
+            return null
+        }
+    }
+
     static async generatePDF(
         title: string,
         data: PaymentReport[],
@@ -21,15 +37,19 @@ export class ReportGenerator {
 
         // Add Logo if available
         if (logoUrl) {
-            try {
-                // We'll try to add the logo if it's a valid image URL
-                // Note: jsPDF needs the image data, so we might need to fetch it first
-                // For now, let's just add the text of the company if logo fetch fails
-                doc.addImage(logoUrl, 'PNG', 10, 10, 50, 20)
-            } catch (e) {
+            const base64Logo = await this.getBase64Image(logoUrl)
+            if (base64Logo) {
+                try {
+                    doc.addImage(base64Logo, 'PNG', 10, 10, 50, 20)
+                } catch (e) {
+                    doc.setFontSize(20)
+                    doc.setTextColor(30, 41, 59)
+                    doc.text('HERIX - Plateforme de Gestion RH & Préposés aux Bénéficiaires', 10, 20)
+                }
+            } else {
                 doc.setFontSize(20)
                 doc.setTextColor(30, 41, 59)
-                doc.text('ENIXIS CORP', 10, 20)
+                doc.text('HERIX - Plateforme de Gestion RH & Préposés aux Bénéficiaires', 10, 20)
             }
         } else {
             doc.setFontSize(20)
@@ -64,39 +84,49 @@ export class ReportGenerator {
     }
 
     static generateExcel(title: string, data: PaymentReport[]) {
-        const worksheet = XLSX.utils.json_to_sheet(data.map(item => ({
-            'Date': item.date,
-            'Collaborateur': item.collaboratorName,
-            'Période': item.period,
-            'Montant (€)': item.amount,
-            'Statut': item.status
-        })))
+        try {
+            const worksheet = XLSX.utils.json_to_sheet(data.map(item => ({
+                'Date': item.date,
+                'Collaborateur': item.collaboratorName,
+                'Période': item.period,
+                'Montant (€)': item.amount,
+                'Statut': item.status
+            })))
 
-        const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Rapport")
+            const workbook = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rapport")
 
-        XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.xlsx`)
+            XLSX.writeFile(workbook, `${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.xlsx`)
+        } catch (err) {
+            console.error('Error generating Excel:', err)
+            alert('Erreur lors de la génération du fichier Excel.')
+        }
     }
 
     static generateCSV(title: string, data: PaymentReport[]) {
-        const worksheet = XLSX.utils.json_to_sheet(data.map(item => ({
-            'Date': item.date,
-            'Collaborateur': item.collaboratorName,
-            'Période': item.period,
-            'Montant (€)': item.amount,
-            'Statut': item.status
-        })))
+        try {
+            const worksheet = XLSX.utils.json_to_sheet(data.map(item => ({
+                'Date': item.date,
+                'Collaborateur': item.collaboratorName,
+                'Période': item.period,
+                'Montant (€)': item.amount,
+                'Statut': item.status
+            })))
 
-        const csv = XLSX.utils.sheet_to_csv(worksheet)
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-        const link = document.createElement("a")
-        const url = URL.createObjectURL(blob)
-        link.setAttribute("href", url)
-        link.setAttribute("download", `${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.csv`)
-        link.style.visibility = 'hidden'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+            const csv = XLSX.utils.sheet_to_csv(worksheet)
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+            const link = document.createElement("a")
+            const url = URL.createObjectURL(blob)
+            link.setAttribute("href", url)
+            link.setAttribute("download", `${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.csv`)
+            link.style.visibility = 'hidden'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        } catch (err) {
+            console.error('Error generating CSV:', err)
+            alert('Erreur lors de la génération du fichier CSV.')
+        }
     }
 
     static async generatePaySlip(
@@ -110,9 +140,14 @@ export class ReportGenerator {
 
         // Header
         if (logoUrl) {
-            try {
-                doc.addImage(logoUrl, 'PNG', 10, 10, 40, 15)
-            } catch (e) {
+            const base64Logo = await this.getBase64Image(logoUrl)
+            if (base64Logo) {
+                try {
+                    doc.addImage(base64Logo, 'PNG', 10, 10, 40, 15)
+                } catch (e) {
+                    doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
+                }
+            } else {
                 doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
             }
         } else {
