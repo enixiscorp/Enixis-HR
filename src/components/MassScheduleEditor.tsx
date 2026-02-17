@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
-import { useProfiles } from '@/hooks/useProfiles'
+import { useCollaborators } from '@/hooks/useCollaborators'
 import { supabase } from '@/lib/supabase'
 import { Calendar as CalendarIcon, Clock, Users, Coffee, Save, CheckCircle2, Search, X, Plus } from 'lucide-react'
 import {
@@ -21,7 +21,7 @@ interface MassScheduleEditorProps {
 }
 
 export function MassScheduleEditor({ onNavigate }: MassScheduleEditorProps) {
-    const { profiles: collaborators } = useProfiles()
+    const { collaborators } = useCollaborators()
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [submitting, setSubmitting] = useState(false)
     const [success, setSuccess] = useState(false)

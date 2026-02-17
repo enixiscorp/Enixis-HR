@@ -23,24 +23,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState(true)
 
-    const fetchProfile = async (userId: string) => {
+    const fetchProfile = async (userId: string, userEmail?: string) => {
         try {
             console.log('Auth: Fetching profile for ID:', userId);
-            // @ts-ignore - Accessing internal URL for debugging purposes
-            console.log('Auth: Supabase Project URL:', supabase.supabaseUrl);
 
-            const { data, error } = await supabase
+            let { data, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', userId)
                 .single()
+
+            // If profile not found and it's the master email, try to create it
+            if (error && (error as any).code === 'PGRST116' && userEmail === 'contacteccorp@gmail.com') {
+                console.log('Auth: Master email detected with missing profile. Creating super_admin profile...');
+                const { data: newProfile, error: createError } = await supabase
+                    .from('profiles')
+                    .upsert([
+                        {
+                            id: userId,
+                            email: userEmail,
+                            first_name: 'Admin',
+                            last_name: 'Principal',
+                            role: 'super_admin',
+                            status: 'active'
+                        }
+                    ])
+                    .select()
+                    .single()
+
+                if (!createError) {
+                    data = newProfile
+                    error = null
+                    console.log('Auth: Super Admin profile created successfully')
+                } else {
+                    console.error('Auth: Failed to create Super Admin profile:', createError)
+                }
+            }
 
             if (error) {
                 console.error('Auth: Profile fetch error:', error);
                 throw error
             }
 
-            console.log('Auth: Profile loaded successfully:', data.role);
+            console.log('Auth: Profile loaded successfully:', data?.role);
             setProfile(data)
         } catch (error) {
             console.error('Auth: fetchProfile failed:', error)
@@ -50,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const refreshProfile = async () => {
         if (user) {
-            await fetchProfile(user.id)
+            await fetchProfile(user.id, user.email)
         }
     }
 
@@ -60,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(session)
             setUser(session?.user ?? null)
             if (session?.user) {
-                fetchProfile(session.user.id)
+                fetchProfile(session.user.id, session.user.email)
             }
             setLoading(false)
         })
@@ -72,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(session)
             setUser(session?.user ?? null)
             if (session?.user) {
-                fetchProfile(session.user.id)
+                fetchProfile(session.user.id, session.user.email)
             } else {
                 setProfile(null)
             }

@@ -335,54 +335,71 @@ export function UserManagement() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {collaborators.map((user: Profile) => (
-                                                    <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                                                        <td className="py-3 px-4">
-                                                            <div className="font-medium text-slate-900 dark:text-white">
-                                                                {user.first_name} {user.last_name}
-                                                            </div>
-                                                            <div className="text-xs text-slate-500">{user.id.substring(0, 8)}...</div>
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <div className="flex items-center gap-1">
-                                                                {user.role === 'super_admin' ? (
-                                                                    <ShieldAlert className="w-4 h-4 text-red-500" />
-                                                                ) : user.role === 'admin' ? (
-                                                                    <Shield className="w-4 h-4 text-purple-500" />
-                                                                ) : (
-                                                                    <Users className="w-4 h-4 text-blue-500" />
-                                                                )}
-                                                                <span className="capitalize text-sm text-slate-700 dark:text-slate-300">
-                                                                    {user.role === 'collaborator' ? 'Collaborateur' :
-                                                                        user.role === 'admin' ? 'Administrateur' : 'Super Admin'}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3 px-4">
-                                                            <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
-                                                                {user.status === 'active' ? 'Actif' : user.status}
-                                                            </Badge>
-                                                        </td>
-                                                        <td className="py-3 px-4 text-right">
-                                                            <div className="flex justify-end gap-1">
-                                                                <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
-                                                                    <Edit2 className="w-4 h-4 mr-1 text-slate-600" />
-                                                                    Éditer
-                                                                </Button>
-                                                                {user.role !== 'super_admin' && (isSuperAdmin || user.role === 'collaborator') && (
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="sm"
-                                                                        onClick={() => handleDeleteUser(user)}
-                                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </Button>
-                                                                )}
-                                                            </div>
+                                                {collaborators.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={4} className="py-20 text-center">
+                                                            <Users className="w-12 h-12 text-slate-700 mx-auto mb-4 opacity-20" />
+                                                            <p className="text-slate-500 font-medium">Aucun collaborateur trouvé.</p>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => refreshUsers()}
+                                                                className="mt-4 text-cyan-400 hover:text-cyan-300"
+                                                            >
+                                                                <RotateCw className="w-4 h-4 mr-2" />
+                                                                Rafraîchir la liste
+                                                            </Button>
                                                         </td>
                                                     </tr>
-                                                ))}
+                                                ) : (
+                                                    collaborators.map((user: Profile) => (
+                                                        <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                                            <td className="py-3 px-4">
+                                                                <div className="font-medium text-slate-900 dark:text-white">
+                                                                    {user.first_name} {user.last_name}
+                                                                </div>
+                                                                <div className="text-xs text-slate-500">{user.id.substring(0, 8)}...</div>
+                                                            </td>
+                                                            <td className="py-3 px-4">
+                                                                <div className="flex items-center gap-1">
+                                                                    {user.role === 'super_admin' ? (
+                                                                        <ShieldAlert className="w-4 h-4 text-red-500" />
+                                                                    ) : user.role === 'admin' ? (
+                                                                        <Shield className="w-4 h-4 text-purple-500" />
+                                                                    ) : (
+                                                                        <Users className="w-4 h-4 text-blue-500" />
+                                                                    )}
+                                                                    <span className="capitalize text-sm text-slate-700 dark:text-slate-300">
+                                                                        {user.role === 'collaborator' ? 'Collaborateur' :
+                                                                            user.role === 'admin' ? 'Administrateur' : 'Super Admin'}
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="py-3 px-4">
+                                                                <Badge variant={user.status === 'active' ? 'success' : 'secondary'}>
+                                                                    {user.status === 'active' ? 'Actif' : user.status}
+                                                                </Badge>
+                                                            </td>
+                                                            <td className="py-3 px-4 text-right">
+                                                                <div className="flex justify-end gap-1">
+                                                                    <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                                                                        <Edit2 className="w-4 h-4 mr-1 text-slate-600" />
+                                                                        Éditer
+                                                                    </Button>
+                                                                    {user.role !== 'super_admin' && (isSuperAdmin || user.role === 'collaborator') && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => handleDeleteUser(user)}
+                                                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )))}
                                             </tbody>
                                         </table>
                                     </div>

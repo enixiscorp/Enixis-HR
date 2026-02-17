@@ -27,6 +27,26 @@ export function useCollaborators() {
 
     useEffect(() => {
         fetchCollaborators()
+
+        // Subscribe to changes in the profiles table
+        const subscription = supabase
+            .channel('profiles_all_changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'profiles'
+                },
+                () => {
+                    fetchCollaborators()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            subscription.unsubscribe()
+        }
     }, [fetchCollaborators])
 
     return { collaborators, loading, error, refresh: fetchCollaborators }
