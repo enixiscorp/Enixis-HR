@@ -56,8 +56,7 @@ interface PaymentManagementProps {
 }
 
 export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
-    const { profile } = useAuth()
-    const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
+    const { profile, isAdmin } = useAuth()
     const {
         payments,
         loading: paymentsLoading,

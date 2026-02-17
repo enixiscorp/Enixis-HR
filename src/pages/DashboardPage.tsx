@@ -93,9 +93,6 @@ export default function DashboardPage() {
     const { upcomingSchedules, loading: schedulesLoading } = useSchedules(selectedUserId)
     const { totalAmount, totalPaidAmount, totalPendingAmount, loading: paymentsLoading } = usePayments(selectedUserId)
 
-    const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin'
-    const isSuperAdmin = profile?.role === 'super_admin'
-
     const getInitials = () => {
         if (profile?.first_name && profile?.last_name) {
             return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()

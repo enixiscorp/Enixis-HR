@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-    const { user, profile, loading } = useAuth()
+    const { user, profile, loading, isAdmin, isSuperAdmin } = useAuth()
 
     if (loading) {
         return (
@@ -24,18 +24,21 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         return <Navigate to="/login" replace />
     }
 
-    // Check role-based access
-    if (requiredRole && profile) {
-        const roleHierarchy = {
-            collaborator: 0,
-            admin: 1,
-            super_admin: 2,
+    if (requiredRole) {
+        if (requiredRole === 'admin' && !isAdmin) {
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-background">
+                    <div className="text-center space-y-4 p-8">
+                        <h1 className="text-4xl font-bold text-destructive">Accès refusé</h1>
+                        <p className="text-muted-foreground">
+                            Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+                        </p>
+                    </div>
+                </div>
+            )
         }
 
-        const userRoleLevel = roleHierarchy[profile.role]
-        const requiredRoleLevel = roleHierarchy[requiredRole]
-
-        if (userRoleLevel < requiredRoleLevel) {
+        if (requiredRole === 'super_admin' && !isSuperAdmin) {
             return (
                 <div className="min-h-screen flex items-center justify-center bg-background">
                     <div className="text-center space-y-4 p-8">

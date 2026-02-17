@@ -11,6 +11,8 @@ interface AuthContextType {
     signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
     signOut: () => Promise<void>
     refreshProfile: () => Promise<void>
+    isAdmin: boolean
+    isSuperAdmin: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -105,6 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null)
     }
 
+    const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin' || user?.email === 'contacteccorp@gmail.com'
+    const isSuperAdmin = profile?.role === 'super_admin' || user?.email === 'contacteccorp@gmail.com'
+
     const value = {
         user,
         profile,
@@ -113,6 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signOut,
         refreshProfile,
+        isAdmin,
+        isSuperAdmin,
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
