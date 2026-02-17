@@ -90,8 +90,8 @@ export default function DashboardPage() {
 
     // Update selectedUserId when user loads if not already set
 
-    const { upcomingSchedules, loading: schedulesLoading } = useSchedules(selectedUserId)
-    const { totalAmount, totalPaidAmount, totalPendingAmount, loading: paymentsLoading } = usePayments(selectedUserId)
+    const { upcomingSchedules, loading: schedulesLoading } = useSchedules(selectedUserId === 'global' ? undefined : selectedUserId)
+    const { totalAmount, totalPaidAmount, totalPendingAmount, loading: paymentsLoading } = usePayments(selectedUserId === 'global' ? undefined : selectedUserId)
 
     const getInitials = () => {
         if (profile?.first_name && profile?.last_name) {
@@ -255,13 +255,13 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {selectedUserId && (
                                     <>
-                                        <RevenueCard userId={selectedUserId} />
+                                        <RevenueCard userId={selectedUserId === 'global' ? undefined : selectedUserId} />
                                         <ScheduleCard
-                                            userId={selectedUserId}
+                                            userId={selectedUserId === 'global' ? undefined : selectedUserId}
                                             isEditable={isAdmin}
                                         />
                                         <div className="lg:col-span-2">
-                                            <PaymentHistoryCard userId={selectedUserId} />
+                                            <PaymentHistoryCard userId={selectedUserId === 'global' ? undefined : selectedUserId} />
                                         </div>
                                     </>
                                 )}

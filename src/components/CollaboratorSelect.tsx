@@ -25,6 +25,7 @@ export function CollaboratorSelect({ value, onValueChange }: CollaboratorSelectP
                 <SelectValue placeholder="Sélectionner un collaborateur" />
             </SelectTrigger>
             <SelectContent>
+                <SelectItem value="global">Vue Globale (Tous)</SelectItem>
                 {collaborators.map((collaborator) => (
                     <SelectItem key={collaborator.id} value={collaborator.id}>
                         {collaborator.first_name} {collaborator.last_name} ({collaborator.role})

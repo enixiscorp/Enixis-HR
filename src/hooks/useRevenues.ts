@@ -17,19 +17,19 @@ export function useRevenues(userId: string | undefined) {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        if (!userId) {
-            setLoading(false)
-            return
-        }
-
         const fetchRevenues = async () => {
             try {
                 setLoading(true)
-                const { data, error } = await supabase
+                let query = supabase
                     .from('revenues')
                     .select('*')
-                    .eq('user_id', userId)
                     .order('date', { ascending: false })
+
+                if (userId) {
+                    query = query.eq('user_id', userId)
+                }
+
+                const { data, error } = await query
 
                 if (error) throw error
                 setRevenues(data || [])
@@ -51,7 +51,7 @@ export function useRevenues(userId: string | undefined) {
                     event: '*',
                     schema: 'public',
                     table: 'revenues',
-                    filter: `user_id=eq.${userId}`,
+                    ...(userId ? { filter: `user_id=eq.${userId}` } : {}),
                 },
                 () => {
                     fetchRevenues()

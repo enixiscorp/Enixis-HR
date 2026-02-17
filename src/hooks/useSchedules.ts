@@ -19,19 +19,19 @@ export function useSchedules(userId: string | undefined) {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        if (!userId) {
-            setLoading(false)
-            return
-        }
-
         const fetchSchedules = async () => {
             try {
                 setLoading(true)
-                const { data, error } = await supabase
+                let query = supabase
                     .from('schedules')
                     .select('*')
-                    .eq('user_id', userId)
                     .order('date', { ascending: true })
+
+                if (userId) {
+                    query = query.eq('user_id', userId)
+                }
+
+                const { data, error } = await query
 
                 if (error) throw error
                 setSchedules(data || [])
@@ -53,7 +53,7 @@ export function useSchedules(userId: string | undefined) {
                     event: '*',
                     schema: 'public',
                     table: 'schedules',
-                    filter: `user_id=eq.${userId}`,
+                    ...(userId ? { filter: `user_id=eq.${userId}` } : {}),
                 },
                 () => {
                     fetchSchedules()
