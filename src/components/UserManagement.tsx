@@ -30,7 +30,25 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 
 export function UserManagement() {
-    const { profile: currentAdmin, isSuperAdmin } = useAuth()
+    const { isSuperAdmin } = useAuth()
+    const { collaborators, loading, refresh: refreshUsers } = useCollaborators()
+    const { toast } = useToast()
+
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
+    const [selectedUser, setSelectedUser] = useState<Profile | null>(null)
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        role: 'collaborator' as UserRole
+    })
+    const [editData, setEditData] = useState({
+        role: 'collaborator' as UserRole,
+        status: 'active' as UserStatus
+    })
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -257,7 +275,7 @@ export function UserManagement() {
                                 <>
                                     {/* Mobile View: Cards */}
                                     <div className="grid grid-cols-1 gap-4 md:hidden">
-                                        {collaborators.map(user => (
+                                        {collaborators.map((user: Profile) => (
                                             <div key={user.id} className="p-4 rounded-xl bg-white/5 border border-cyan-500/10 space-y-3">
                                                 <div className="flex justify-between items-start">
                                                     <div>
@@ -317,7 +335,7 @@ export function UserManagement() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {collaborators.map(user => (
+                                                {collaborators.map((user: Profile) => (
                                                     <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
                                                         <td className="py-3 px-4">
                                                             <div className="font-medium text-slate-900 dark:text-white">
