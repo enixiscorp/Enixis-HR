@@ -50,10 +50,10 @@ export default function LoginPage() {
                     <div className="space-y-8">
                         <div>
                             <h2 className="text-4xl font-bold mb-4">
-                                Gérez vos factures<br />en toute simplicité
+                                Gérez votre équipe<br />en toute simplicité
                             </h2>
                             <p className="text-emerald-100 text-lg">
-                                Rejoignez des milliers de professionnels qui font confiance à HERIX pour leur facturation.
+                                Rejoignez des milliers de professionnels qui font confiance à HERIX pour leur gestion RH.
                             </p>
                         </div>
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
                 <div className="w-full max-w-md">
                     <div className="mb-8">
                         <h2 className="text-3xl font-bold text-slate-900 mb-2">
-                            Accédez à votre espace de facturation
+                            Accédez à votre espace RH
                         </h2>
                     </div>
 

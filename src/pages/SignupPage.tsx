@@ -143,7 +143,7 @@ export default function SignupPage() {
                                 Lancez-vous en<br />quelques minutes
                             </h2>
                             <p className="text-emerald-100 text-lg">
-                                Créez votre compte et commencez à envoyer des factures professionnelles dès aujourd'hui.
+                                Créez votre compte et commencez à gérer votre équipe professionnellement dès aujourd'hui.
                             </p>
                         </div>
 
