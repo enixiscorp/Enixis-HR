@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent } from '@/components/ui/card'
-import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, Sparkles, Check } from 'lucide-react'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
@@ -22,157 +21,148 @@ export default function LoginPage() {
 
         try {
             const { error } = await signIn(email, password)
-
             if (error) {
-                setError(error.message)
+                setError(error.message === 'Invalid login credentials'
+                    ? 'Identifiants incorrects'
+                    : error.message)
             } else {
                 navigate('/dashboard')
             }
         } catch (err) {
-            setError('Une erreur est survenue lors de la connexion')
+            setError('Une erreur est survenue')
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950">
-            {/* Animated background effects */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-700" />
-                <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-pink-500/5 rounded-full blur-2xl animate-pulse delay-1000" />
-            </div>
+        <div className="min-h-screen flex">
+            {/* Left Panel - Green */}
+            <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-emerald-500 to-emerald-600 p-12 flex-col justify-between text-white">
+                <div>
+                    <div className="flex items-center gap-3 mb-12">
+                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                            <Sparkles className="w-7 h-7 text-emerald-500" />
+                        </div>
+                        <h1 className="text-3xl font-black">HERIX</h1>
+                    </div>
 
-            {/* Grid pattern overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
+                    <div className="space-y-8">
+                        <div>
+                            <h2 className="text-4xl font-bold mb-4">
+                                Gérez vos factures<br />en toute simplicité
+                            </h2>
+                            <p className="text-emerald-100 text-lg">
+                                Rejoignez des milliers de professionnels qui font confiance à HERIX pour leur facturation.
+                            </p>
+                        </div>
 
-            <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
-                {/* Logo and brand section */}
-                <div className="w-full max-w-md mb-8">
-                    <div className="text-center space-y-4">
-                        {/* Logo */}
-                        <div className="inline-flex items-center justify-center mb-2">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 blur-xl opacity-50 animate-pulse" />
-                                <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
-                                    <Sparkles className="w-8 h-8 text-purple-400" />
-                                    <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 tracking-tight">
-                                        HERIX
-                                    </h1>
-                                </div>
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <Check className="w-5 h-5" />
+                                <span>Configuration en moins de 5 minutes</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Check className="w-5 h-5" />
+                                <span>Aucune carte bancaire requise</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <Check className="w-5 h-5" />
+                                <span>Essai gratuit de 14 jours</span>
                             </div>
                         </div>
-
-                        {/* Powered by tag */}
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full animate-pulse">
-                            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
-                            <div className="w-2 h-2 bg-emerald-400 rounded-full absolute" />
-                            <span className="text-xs font-medium text-white/60">Powered by Enixis</span>
-                        </div>
-
-                        <p className="text-lg text-white/60 font-light">
-                            Gestion RH Nouvelle Génération
-                        </p>
                     </div>
                 </div>
 
-                {/* Login card */}
-                <Card className="w-full max-w-md border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl">
-                    <CardContent className="pt-8 pb-8 px-8">
-                        <div className="space-y-6">
-                            <div className="text-center space-y-2">
-                                <h2 className="text-2xl font-bold text-white">Bienvenue</h2>
-                                <p className="text-sm text-white/50">Connectez-vous pour continuer</p>
+                <div className="text-sm text-emerald-100">
+                    © {new Date().getFullYear()} HERIX - Tous droits réservés
+                </div>
+            </div>
+
+            {/* Right Panel - White Form */}
+            <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
+                <div className="w-full max-w-md">
+                    <div className="mb-8">
+                        <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                            Accédez à votre espace de facturation
+                        </h2>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {error && (
+                            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                                <p className="text-sm text-red-600">{error}</p>
                             </div>
+                        )}
 
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                {error && (
-                                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 backdrop-blur-sm">
-                                        <p className="text-sm text-red-200 text-center">{error}</p>
-                                    </div>
-                                )}
+                        <div>
+                            <Input
+                                type="email"
+                                placeholder="edemcyrille@email.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                className="h-12 bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-emerald-500"
+                            />
+                        </div>
 
-                                {/* Email field */}
-                                <div className="space-y-2">
-                                    <label htmlFor="email" className="text-sm font-medium text-white/80 flex items-center gap-2">
-                                        <Mail className="w-4 h-4" />
-                                        Adresse email
-                                    </label>
-                                    <div className="relative">
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="nom@exemple.com"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required
-                                            className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-purple-400/50 focus:ring-purple-400/20 transition-all"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Password field */}
-                                <div className="space-y-2">
-                                    <label htmlFor="password" className="text-sm font-medium text-white/80 flex items-center gap-2">
-                                        <Lock className="w-4 h-4" />
-                                        Mot de passe
-                                    </label>
-                                    <div className="relative">
-                                        <Input
-                                            id="password"
-                                            type={showPassword ? 'text' : 'password'}
-                                            placeholder="••••••••"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            required
-                                            className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-purple-400/50 focus:ring-purple-400/20 pr-12 transition-all"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
-                                        >
-                                            {showPassword ? (
-                                                <EyeOff className="w-5 h-5" />
-                                            ) : (
-                                                <Eye className="w-5 h-5" />
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Submit button */}
-                                <Button
-                                    type="submit"
-                                    className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 hover:scale-[1.02]"
-                                    disabled={loading}
+                        <div className="space-y-2">
+                            <div className="relative">
+                                <Input
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="h-12 bg-white border-slate-300 text-slate-900 pr-12 focus:border-emerald-500 focus:ring-emerald-500"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                 >
-                                    {loading ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            Connexion en cours...
-                                        </div>
-                                    ) : (
-                                        'Se connecter'
-                                    )}
-                                </Button>
-                            </form>
-
-                            <div className="pt-4 border-t border-white/10">
-                                <p className="text-center text-sm text-white/40">
-                                    Besoin d'aide ? Contactez votre administrateur
-                                </p>
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                                >
+                                    Mot de passe oublié ?
+                                </button>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
 
-                {/* Footer */}
-                <div className="mt-8 text-center">
-                    <p className="text-sm text-white/30">
-                        © {new Date().getFullYear()} HERIX - Tous droits réservés
-                    </p>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-base"
+                        >
+                            {loading ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Connexion...
+                                </div>
+                            ) : (
+                                'Se connecter'
+                            )}
+                        </Button>
+
+                        <div className="text-center text-sm text-slate-600">
+                            Pas encore de compte ?{' '}
+                            <Link to="/signup" className="text-emerald-600 hover:text-emerald-700 font-semibold">
+                                Créer un compte
+                            </Link>
+                        </div>
+                    </form>
+
+                    <div className="mt-8 pt-6 border-t border-slate-200 text-center text-xs text-slate-500">
+                        En créant un compte, vous acceptez les{' '}
+                        <button className="text-emerald-600 hover:underline">Conditions générales</button>
+                        {' '}et la{' '}
+                        <button className="text-emerald-600 hover:underline">Politique de confidentialité</button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { CurrencyProvider } from '@/contexts/CurrencyContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
@@ -6,6 +6,8 @@ import { ToastProvider } from '@/contexts/ToastContext'
 import { Toaster } from '@/components/ui/Toaster'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import LandingPage from '@/pages/LandingPage'
+import LoginPage from '@/pages/LoginPage'
+import SignupPage from '@/pages/SignupPage'
 import DashboardPage from '@/pages/DashboardPage'
 
 function App() {
@@ -17,7 +19,8 @@ function App() {
                         <Router>
                             <Routes>
                                 <Route path="/" element={<LandingPage />} />
-                                <Route path="/login" element={<Navigate to="/" replace />} />
+                                <Route path="/login" element={<LoginPage />} />
+                                <Route path="/signup" element={<SignupPage />} />
                                 <Route
                                     path="/dashboard"
                                     element={
