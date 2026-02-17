@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { Toaster } from '@/components/ui/Toaster'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import LoginPage from '@/pages/LoginPage'
+import LandingPage from '@/pages/LandingPage'
 import DashboardPage from '@/pages/DashboardPage'
 
 function App() {
@@ -16,7 +16,8 @@ function App() {
                     <CurrencyProvider>
                         <Router>
                             <Routes>
-                                <Route path="/login" element={<LoginPage />} />
+                                <Route path="/" element={<LandingPage />} />
+                                <Route path="/login" element={<Navigate to="/" replace />} />
                                 <Route
                                     path="/dashboard"
                                     element={
@@ -25,7 +26,6 @@ function App() {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
                             </Routes>
                         </Router>
                     </CurrencyProvider>
