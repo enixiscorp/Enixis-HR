@@ -72,8 +72,9 @@ export function Sidebar({
                         isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
                     )}>
                         <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                            Enixis HR
+                            HERIX
                         </h1>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-600">by Enixis</p>
                     </div>
                 </div>
 
