@@ -6,7 +6,7 @@ import { useCurrency } from '@/contexts/CurrencyContext'
 import { useState } from 'react'
 
 interface RevenueCardProps {
-    userId: string
+    userId?: string
 }
 
 export default function RevenueCard({ userId }: RevenueCardProps) {

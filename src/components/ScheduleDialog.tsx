@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 interface ScheduleDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    userId: string
+    userId?: string
     onSuccess: () => void
     scheduleToEdit?: {
         id: string

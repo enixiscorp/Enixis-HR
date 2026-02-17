@@ -11,7 +11,7 @@ import { generateAbsencePDF } from '@/lib/exportUtils'
 import { usePlatformSettings } from '@/hooks/usePlatformSettings'
 
 interface ScheduleCardProps {
-    userId: string
+    userId?: string
     isEditable?: boolean
 }
 
@@ -109,14 +109,17 @@ export default function ScheduleCard({ userId, isEditable = false }: ScheduleCar
                             <Badge className="text-sm bg-cyan-500/10 text-cyan-400 border-cyan-500/30">
                                 {upcomingSchedules.length} à venir
                             </Badge>
-                            {/* Collaborators can now request absences via (+) */}
-                            <Button size="sm" onClick={handleAddAbsence} className="h-8 w-8 p-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20" title="Demander une absence">
-                                <Plus className="w-4 h-4" />
-                            </Button>
-                            {isEditable && (
-                                <Button size="sm" onClick={handleAddSchedule} variant="outline" className="h-8 w-8 p-0" title="Ajouter un horaire">
-                                    <Clock className="w-4 h-4" />
-                                </Button>
+                            {userId && (
+                                <>
+                                    <Button size="sm" onClick={handleAddAbsence} className="h-8 w-8 p-0 bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20" title="Demander une absence">
+                                        <Plus className="w-4 h-4" />
+                                    </Button>
+                                    {isEditable && (
+                                        <Button size="sm" onClick={handleAddSchedule} variant="outline" className="h-8 w-8 p-0" title="Ajouter un horaire">
+                                            <Clock className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>

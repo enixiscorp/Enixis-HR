@@ -9,7 +9,7 @@ import { useCollaborators } from '@/hooks/useCollaborators'
 import { generatePaymentPDF, generatePaymentExcel } from '@/lib/exportUtils'
 
 interface PaymentHistoryCardProps {
-    userId: string
+    userId?: string
 }
 
 export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) {

@@ -10,7 +10,7 @@ import { AbsenceType } from '@/types/database'
 interface AbsenceRequestDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
-    userId: string
+    userId?: string
     onSuccess: () => void
 }
 
