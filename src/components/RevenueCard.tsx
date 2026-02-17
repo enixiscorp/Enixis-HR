@@ -1,9 +1,10 @@
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useRevenues } from '@/hooks/useRevenues'
 import { DollarSign, TrendingUp } from 'lucide-react'
 import { useCurrency } from '@/contexts/CurrencyContext'
-import { useState } from 'react'
+import { RevenueChart } from './RevenueChart'
 
 interface RevenueCardProps {
     userId?: string
@@ -15,6 +16,13 @@ export default function RevenueCard({ userId }: RevenueCardProps) {
     const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'monthly' | 'quarterly' | 'yearly' | 'all'>('all')
 
     const displayRevenues = selectedPeriod === 'all' ? revenues : revenuesByPeriod(selectedPeriod)
+
+    const chartData = useMemo(() => {
+        return revenues.map(r => ({
+            date: r.date,
+            amount: Number(r.amount)
+        }))
+    }, [revenues])
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -41,6 +49,13 @@ export default function RevenueCard({ userId }: RevenueCardProps) {
                 </div>
             </CardHeader>
             <CardContent>
+                <div className="mb-6 h-[250px] w-full">
+                    <RevenueChart
+                        data={chartData}
+                        title=""
+                    />
+                </div>
+
                 {/* Period Filter */}
                 <div className="flex gap-2 mb-4 flex-wrap">
                     {(['all', 'daily', 'monthly', 'quarterly', 'yearly'] as const).map((period) => (

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -9,22 +9,42 @@ import { Building2, Save, Image as ImageIcon, CheckCircle2, Sun, Moon, Monitor }
 
 
 export function PlatformSettings() {
-    const { settings, updateLogo } = usePlatformSettings()
+    const { settings, updateSettings, loading } = usePlatformSettings()
     const { theme, setTheme } = useTheme()
-    const [logoUrl, setLogoUrl] = useState(settings?.logo_url || '')
+    const [logoUrl, setLogoUrl] = useState('')
+    const [location, setLocation] = useState('')
+    const [address, setAddress] = useState('')
     const [saving, setSaving] = useState(false)
     const [success, setSuccess] = useState(false)
+
+    useEffect(() => {
+        if (settings) {
+            setLogoUrl(settings.logo_url || '')
+            setLocation(settings.location || 'Lomé')
+            setAddress(settings.company_address || '')
+        }
+    }, [settings])
+
+    if (loading) return (
+        <div className="flex items-center justify-center p-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
+        </div>
+    )
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
         setSaving(true)
         setSuccess(false)
         try {
-            await updateLogo(logoUrl)
+            await updateSettings({
+                logo_url: logoUrl,
+                location,
+                company_address: address
+            })
             setSuccess(true)
             setTimeout(() => setSuccess(false), 3000)
         } catch (err) {
-            alert('Erreur lors de la mise à jour du logo')
+            alert('Erreur lors de la mise à jour des paramètres')
         } finally {
             setSaving(false)
         }
@@ -39,13 +59,13 @@ export function PlatformSettings() {
                         Personnalisation
                     </CardTitle>
                     <CardDescription className="text-gray-400">
-                        Personnalisez l'apparence de Enixis HR pour tous les utilisateurs.
+                        Personnalisez l'apparence de HERIX pour tous les utilisateurs.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSave} className="space-y-6">
                         <div className="space-y-4">
-                            <Label htmlFor="logoUrl" className="text-lg font-black text-white">Logo de Enixis Corp</Label>
+                            <Label htmlFor="logoUrl" className="text-lg font-black text-white">Identité visuelle de l'entreprise</Label>
                             <div className="flex flex-col md:flex-row gap-6 items-start">
                                 <div className="w-32 h-32 rounded-xl bg-black/20 border-2 border-dashed border-cyan-500/20 flex items-center justify-center overflow-hidden">
                                     {logoUrl ? (
@@ -70,12 +90,35 @@ export function PlatformSettings() {
                                         </p>
                                     </div>
 
+                                    <div className="space-y-2">
+                                        <Label htmlFor="location" className="text-gray-400">Localisation (Ville)</Label>
+                                        <Input
+                                            id="location"
+                                            placeholder="Ex: Lomé, Paris, Bruxelles..."
+                                            value={location}
+                                            onChange={e => setLocation(e.target.value)}
+                                            className="bg-black/20 border-cyan-500/10 text-white placeholder:text-gray-600 focus:border-cyan-500/50"
+                                        />
+                                        <p className="text-[10px] text-gray-500 italic">Sera utilisé pour la mention "Fait à [Ville]" sur les rapports.</p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="address" className="text-gray-400">Adresse Complète</Label>
+                                        <Input
+                                            id="address"
+                                            placeholder="Ex: 123 Rue de la République..."
+                                            value={address}
+                                            onChange={e => setAddress(e.target.value)}
+                                            className="bg-black/20 border-cyan-500/10 text-white placeholder:text-gray-600 focus:border-cyan-500/50"
+                                        />
+                                    </div>
+
                                     <Button
                                         type="submit"
                                         disabled={saving}
                                         className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/20"
                                     >
-                                        {saving ? 'Enregistrement...' : success ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Enregistré</> : <><Save className="w-4 h-4 mr-2" /> Enregistrer les modifications</>}
+                                        {saving ? 'Enregistrement...' : success ? <><CheckCircle2 className="w-4 h-4 mr-2" /> Paramètres enregistrés</> : <><Save className="w-4 h-4 mr-2" /> Enregistrer les modifications</>}
                                     </Button>
                                 </div>
                             </div>

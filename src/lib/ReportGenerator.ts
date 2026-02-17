@@ -31,37 +31,62 @@ export class ReportGenerator {
     static async generatePDF(
         title: string,
         data: PaymentReport[],
-        logoUrl: string | null = null
+        settings: any = null
     ) {
         const doc = new jsPDF()
+        const pageWidth = doc.internal.pageSize.getWidth()
+        const pageHeight = doc.internal.pageSize.getHeight()
+        const logoUrl = settings?.logo_url
+
+        // Draw elegant page border
+        doc.setDrawColor(6, 182, 212) // Cyan-500
+        doc.setLineWidth(0.5)
+        doc.rect(5, 5, pageWidth - 10, pageHeight - 10)
+
+        // Secondary internal border for premium feel
+        doc.setDrawColor(59, 130, 246) // Blue-500
+        doc.setLineWidth(0.1)
+        doc.rect(7, 7, pageWidth - 14, pageHeight - 14)
 
         // Add Logo if available
         if (logoUrl) {
             const base64Logo = await this.getBase64Image(logoUrl)
             if (base64Logo) {
                 try {
-                    doc.addImage(base64Logo, 'PNG', 10, 10, 50, 20)
+                    doc.addImage(base64Logo, 'PNG', 12, 12, 40, 15)
                 } catch (e) {
-                    doc.setFontSize(20)
-                    doc.setTextColor(30, 41, 59)
-                    doc.text('HERIX - Plateforme de Gestion RH & Préposés aux Bénéficiaires', 10, 20)
+                    doc.setFontSize(22)
+                    doc.setTextColor(6, 182, 212) // Cyan-500
+                    doc.setFont('helvetica', 'bold')
+                    doc.text('HERIX', 12, 22)
                 }
             } else {
-                doc.setFontSize(20)
-                doc.setTextColor(30, 41, 59)
-                doc.text('HERIX - Plateforme de Gestion RH & Préposés aux Bénéficiaires', 10, 20)
+                doc.setFontSize(22)
+                doc.setTextColor(6, 182, 212)
+                doc.setFont('helvetica', 'bold')
+                doc.text('HERIX', 12, 22)
             }
         } else {
-            doc.setFontSize(20)
-            doc.setTextColor(30, 41, 59)
-            doc.text('ENIXIS CORP', 10, 20)
+            doc.setFontSize(22)
+            doc.setTextColor(6, 182, 212)
+            doc.setFont('helvetica', 'bold')
+            doc.text('HERIX', 12, 22)
         }
 
-        doc.setFontSize(16)
-        doc.text(title, 10, 40)
+        // Title with underline decoration
+        doc.setFontSize(18)
+        doc.setTextColor(30, 41, 59) // Slate-800
+        doc.setFont('helvetica', 'bold')
+        doc.text(title, pageWidth / 2, 40, { align: 'center' })
+
+        doc.setDrawColor(6, 182, 212)
+        doc.setLineWidth(1)
+        doc.line(pageWidth / 2 - 25, 45, pageWidth / 2 + 25, 45)
 
         doc.setFontSize(10)
-        doc.text(`Généré le : ${new Date().toLocaleDateString('fr-FR')}`, 10, 50)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(100, 116, 139) // Slate-500
+        doc.text(`Généré le : ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - 15, 20, { align: 'right' })
 
         const tableColumn = ["Date", "Collaborateur", "Période", "Montant", "Statut"]
         const tableRows = data.map(item => [
@@ -76,9 +101,33 @@ export class ReportGenerator {
                 head: [tableColumn],
                 body: tableRows,
                 startY: 60,
-                theme: 'striped',
-                headStyles: { fillColor: [124, 58, 237] }, // Purple-600
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [6, 182, 212], // Cyan-500
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                bodyStyles: {
+                    fontSize: 9,
+                    textColor: [30, 41, 59]
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 247, 250]
+                },
+                margin: { left: 12, right: 12 }
             })
+
+        const finalY = (doc as any).lastAutoTable.finalY + 20
+        const location = settings?.location || 'Lomé'
+
+        doc.setFontSize(11)
+        doc.setTextColor(30, 41, 59)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`Fait à ${location}, le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - 15, finalY, { align: 'right' })
+        doc.setFontSize(10)
+        doc.text('La Direction', pageWidth - 15, finalY + 10, { align: 'right' })
 
         doc.save(`${title.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`)
     }
@@ -133,38 +182,62 @@ export class ReportGenerator {
         collaborator: { name: string; role: string; email: string },
         period: string,
         payments: any[],
-        logoUrl: string | null = null
+        settings: any = null
     ) {
         const doc = new jsPDF()
+        const pageWidth = doc.internal.pageSize.getWidth()
+        const pageHeight = doc.internal.pageSize.getHeight()
         const total = payments.reduce((sum, p) => sum + p.amount, 0)
+        const logoUrl = settings?.logo_url
+
+        // Draw elegant page border
+        doc.setDrawColor(124, 58, 237) // Purple-600
+        doc.setLineWidth(0.5)
+        doc.rect(5, 5, pageWidth - 10, pageHeight - 10)
+
+        doc.setDrawColor(139, 92, 246) // Purple-500
+        doc.setLineWidth(0.1)
+        doc.rect(7, 7, pageWidth - 14, pageHeight - 14)
 
         // Header
         if (logoUrl) {
             const base64Logo = await this.getBase64Image(logoUrl)
             if (base64Logo) {
                 try {
-                    doc.addImage(base64Logo, 'PNG', 10, 10, 40, 15)
+                    doc.addImage(base64Logo, 'PNG', 12, 12, 40, 15)
                 } catch (e) {
-                    doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
+                    doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
                 }
             } else {
-                doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
+                doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
             }
         } else {
-            doc.setFontSize(18).text('ENIXIS CORP', 10, 20)
+            doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
         }
 
-        doc.setFontSize(14).text('BULLETIN DE PAIEMENT', 105, 20, { align: 'center' })
+        doc.setFontSize(16).setTextColor(30, 41, 59).setFont('helvetica', 'bold').text('BULLETIN DE PAIEMENT', pageWidth / 2, 22, { align: 'center' })
 
-        // Info Box
-        doc.setFontSize(10)
-        doc.rect(10, 35, 190, 30)
-        doc.text(`Collaborateur: ${collaborator.name}`, 15, 45)
-        doc.text(`Email: ${collaborator.email}`, 15, 52)
-        doc.text(`Poste: ${collaborator.role}`, 15, 59)
+        // Info Box with better styling
+        doc.setFillColor(248, 250, 252)
+        doc.roundedRect(12, 35, 186, 35, 3, 3, 'F')
+        doc.setDrawColor(226, 232, 240)
+        doc.roundedRect(12, 35, 186, 35, 3, 3, 'D')
 
-        doc.text(`Période: ${period}`, 120, 45)
-        doc.text(`Date d'émission: ${new Date().toLocaleDateString('fr-FR')}`, 120, 52)
+        doc.setFontSize(10).setTextColor(71, 85, 105).setFont('helvetica', 'normal')
+        doc.text(`Collaborateur:`, 20, 45)
+        doc.setFont('helvetica', 'bold').setTextColor(30, 41, 59).text(collaborator.name, 50, 45)
+
+        doc.setFont('helvetica', 'normal').setTextColor(71, 85, 105).text(`Email:`, 20, 53)
+        doc.setFont('helvetica', 'bold').setTextColor(30, 41, 59).text(collaborator.email, 50, 53)
+
+        doc.setFont('helvetica', 'normal').setTextColor(71, 85, 105).text(`Poste:`, 20, 61)
+        doc.setFont('helvetica', 'bold').setTextColor(30, 41, 59).text(collaborator.role, 50, 61)
+
+        doc.setFont('helvetica', 'normal').setTextColor(71, 85, 105).text(`Période:`, 115, 45)
+        doc.setFont('helvetica', 'bold').setTextColor(30, 41, 59).text(period, 150, 45)
+
+        doc.setFont('helvetica', 'normal').setTextColor(71, 85, 105).text(`Émission:`, 115, 53)
+        doc.setFont('helvetica', 'bold').setTextColor(30, 41, 59).text(new Date().toLocaleDateString('fr-FR'), 150, 53)
 
         // Table
         const tableColumn = ["Date", "Description", "Montant"]
@@ -177,23 +250,40 @@ export class ReportGenerator {
             ; (doc as any).autoTable({
                 head: [tableColumn],
                 body: tableRows,
-                startY: 75,
+                startY: 80,
                 theme: 'grid',
-                headStyles: { fillColor: [124, 58, 237] },
-                columnStyles: { 2: { halign: 'right' } }
+                headStyles: {
+                    fillColor: [124, 58, 237], // Purple-600
+                    halign: 'center'
+                },
+                columnStyles: { 2: { halign: 'right' } },
+                margin: { left: 12, right: 12 }
             })
 
         // Total
-        const finalY = (doc as any).lastAutoTable.finalY + 10
-        doc.setFontSize(12)
-        doc.setFont('helvetica', 'bold')
-        doc.text(`TOTAL NET À PAYER:`, 130, finalY)
-        doc.text(`${total.toLocaleString()} CFA`, 195, finalY, { align: 'right' })
+        const finalY = (doc as any).lastAutoTable.finalY + 15
+        doc.setFillColor(124, 58, 237)
+        doc.roundedRect(120, finalY - 10, 78, 15, 2, 2, 'F')
+        doc.setFontSize(11).setFont('helvetica', 'bold').setTextColor(255, 255, 255)
+        doc.text(`TOTAL NET:`, 125, finalY)
+        doc.text(`${total.toLocaleString()} CFA`, 190, finalY, { align: 'right' })
+
+        // Footer Signatures
+        const footerY = pageHeight - 40
+        const location = settings?.location || 'Lomé'
+
+        doc.setFontSize(10).setTextColor(30, 41, 59).setFont('helvetica', 'bold')
+        doc.text(`Fait à ${location}, le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - 20, footerY, { align: 'right' })
+        doc.text('Le Responsable RH', pageWidth - 20, footerY + 10, { align: 'right' })
+
+        doc.text('Signature du Collaborateur', 20, footerY + 10)
+        doc.setFontSize(8).setFont('helvetica', 'italic').setTextColor(148, 163, 184)
+        doc.text('(Précédé de la mention "Lu et approuvé")', 20, footerY + 18)
 
         // Footer
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        doc.text('Ce document sert de preuve de paiement pour les prestations effectuées.', 105, 280, { align: 'center' })
+        // Note
+        doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(100, 116, 139)
+        doc.text('Ce document est un bulletin de paie électronique généré par HERIX. Il sert de preuve de paiement officielle.', pageWidth / 2, pageHeight - 15, { align: 'center' })
 
         doc.save(`Bulletin_Paie_${collaborator.name.replace(/\s+/g, '_')}_${period.replace(/\s+/g, '_')}.pdf`)
     }

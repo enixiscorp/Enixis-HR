@@ -137,7 +137,7 @@ export default function PaymentHistoryCard({ userId }: PaymentHistoryCardProps) 
                                                 size="sm"
                                                 className="flex-1 sm:flex-none border-cyan-500/30 hover:bg-cyan-500/10 text-cyan-400 h-9"
                                                 title="Exporter en PDF"
-                                                onClick={() => generatePaymentPDF(payment, currentCollaborator, settings?.logo_url || null)}
+                                                onClick={() => generatePaymentPDF(payment, currentCollaborator, settings)}
                                             >
                                                 <FileDown className="w-4 h-4 mr-2" />
                                                 <span className="sm:hidden text-xs">PDF</span>

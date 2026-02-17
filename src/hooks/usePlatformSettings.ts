@@ -5,6 +5,8 @@ export interface PlatformSettings {
     id: string
     logo_url: string | null
     platform_name: string
+    location: string
+    company_address: string | null
     updated_at: string
 }
 
@@ -33,7 +35,7 @@ export function usePlatformSettings() {
         }
     }
 
-    const updateLogo = async (url: string) => {
+    const updateSettings = async (updates: Partial<PlatformSettings>) => {
         try {
             // Fetch latest ID just in case to avoid duplicates
             const { data: latest } = await supabase
@@ -45,10 +47,10 @@ export function usePlatformSettings() {
                 .from('platform_settings')
                 .upsert({
                     id: latest?.id || settings?.id,
-                    logo_url: url,
                     platform_name: 'HERIX',
                     is_singleton: true,
-                    updated_at: new Date().toISOString()
+                    updated_at: new Date().toISOString(),
+                    ...updates
                 }, {
                     onConflict: 'is_singleton'
                 })
@@ -56,7 +58,7 @@ export function usePlatformSettings() {
             if (error) throw error
             await fetchSettings()
         } catch (err) {
-            console.error('Error updating logo:', err)
+            console.error('Error updating settings:', err)
             throw err
         }
     }
@@ -65,5 +67,5 @@ export function usePlatformSettings() {
         fetchSettings()
     }, [])
 
-    return { settings, loading, updateLogo, refresh: fetchSettings }
+    return { settings, loading, updateSettings, refresh: fetchSettings }
 }

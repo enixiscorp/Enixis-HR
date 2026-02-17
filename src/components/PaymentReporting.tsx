@@ -79,11 +79,11 @@ export function PaymentReporting() {
                     { name: user.collaboratorName, role: user.collaboratorRole, email: user.collaboratorEmail },
                     period,
                     data,
-                    settings?.logo_url
+                    settings
                 )
             } else {
                 const title = 'Rapport de Paiements Global'
-                await ReportGenerator.generatePDF(title, data, settings?.logo_url)
+                await ReportGenerator.generatePDF(title, data, settings)
             }
         } else {
             alert('Aucun paiement trouvé pour cette période ou ce collaborateur.')
