@@ -7,8 +7,8 @@ import { Sparkles, Check, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 const pricingPlans = [
-    { id: 'starter', name: 'Starter - 25€/mois (15.000 XOF)', value: 'starter' },
-    { id: 'professional', name: 'Professional - 40€/ 3 mois (25.000 XOF)', value: 'professional' },
+    { id: 'starter', name: 'Starter - 25€ / mois (15.000 XOF)', value: 'starter' },
+    { id: 'professional', name: 'Professional - 40€ / 3 mois (25.000 XOF)', value: 'professional' },
     { id: 'enterprise', name: 'Enterprise - Sur mesure', value: 'enterprise' }
 ]
 

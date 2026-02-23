@@ -22,8 +22,8 @@ const pricingPlans = [
     {
         id: 'starter' as PricingTier,
         name: 'Starter',
-        price: '49€',
-        period: '/mois',
+        price: '25€',
+        period: ' / mois (15.000 XOF)',
         description: 'Parfait pour les petites équipes',
         features: [
             'Jusqu\'à 10 collaborateurs',
@@ -37,8 +37,8 @@ const pricingPlans = [
     {
         id: 'professional' as PricingTier,
         name: 'Professional',
-        price: '149€',
-        period: '/mois',
+        price: '40€',
+        period: ' / 3 mois (25.000 XOF)',
         description: 'Pour les équipes en croissance',
         features: [
             'Jusqu\'à 50 collaborateurs',

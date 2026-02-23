@@ -88,8 +88,16 @@ export default function SubscriptionManagement() {
 
     const handleRenewSubscription = async (userId: string, currentEnd: string | null) => {
         setUpdating(userId)
+        const userToRenew = users.find(u => u.id === userId)
+        const isProfessional = userToRenew?.plan === 'professional'
+
         const newEnd = new Date(currentEnd || new Date())
-        newEnd.setMonth(newEnd.getMonth() + 1) // Default renew +1 month
+        if (isProfessional) {
+            newEnd.setMonth(newEnd.getMonth() + 3) // Renew +3 months for Professional
+        } else {
+            newEnd.setMonth(newEnd.getMonth() + 1) // Default +1 month for Starter/Others
+        }
+
         const nextEnd = newEnd.toISOString()
 
         // Update user and their team
