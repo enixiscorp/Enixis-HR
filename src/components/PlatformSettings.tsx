@@ -12,6 +12,7 @@ export function PlatformSettings() {
     const { settings, updateSettings, loading } = usePlatformSettings()
     const { theme, setTheme } = useTheme()
     const [logoUrl, setLogoUrl] = useState('')
+    const [startupName, setStartupName] = useState('')
     const [location, setLocation] = useState('')
     const [address, setAddress] = useState('')
     const [saving, setSaving] = useState(false)
@@ -20,6 +21,7 @@ export function PlatformSettings() {
     useEffect(() => {
         if (settings) {
             setLogoUrl(settings.logo_url || '')
+            setStartupName(settings.startup_name || '')
             setLocation(settings.location || 'Lomé')
             setAddress(settings.company_address || '')
         }
@@ -38,6 +40,7 @@ export function PlatformSettings() {
         try {
             await updateSettings({
                 logo_url: logoUrl,
+                startup_name: startupName,
                 location,
                 company_address: address
             })
@@ -75,7 +78,19 @@ export function PlatformSettings() {
                                     )}
                                 </div>
 
-                                <div className="flex-1 space-y-4 w-full">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="startupName" className="text-gray-400">Nom de la Start-up / Entreprise</Label>
+                                        <Input
+                                            id="startupName"
+                                            placeholder="Ex: Enixis Corp, My Startup..."
+                                            value={startupName}
+                                            onChange={e => setStartupName(e.target.value)}
+                                            className="bg-black/20 border-cyan-500/10 text-white placeholder:text-gray-600 focus:border-cyan-500/50"
+                                        />
+                                        <p className="text-[10px] text-gray-500 italic">Sera affiché sur tous les documents d'export (PDF/Excel).</p>
+                                    </div>
+
                                     <div className="space-y-2">
                                         <Label htmlFor="logoUrl" className="text-gray-400">URL du Logo (PNG/SVG recommandé)</Label>
                                         <Input

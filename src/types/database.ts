@@ -36,6 +36,8 @@ export interface Profile {
     subscription_end: string | null
     parent_id: string | null
     company_name: string | null
+    plan: string | null
+    startup_name?: string | null
     last_seen_at?: string | null
     last_logout_at?: string | null
     created_at: string

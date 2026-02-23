@@ -42,20 +42,22 @@ export const generatePaymentPDF = async (payment: any, profile: any, settings: a
     doc.setLineWidth(0.1)
     doc.rect(7, 7, pageWidth - 14, pageHeight - 14)
 
-    // Header
+    const companyName = settings?.startup_name || 'HERIX'
+
     if (logoUrl) {
         const base64Logo = await getBase64Image(logoUrl)
         if (base64Logo) {
             try {
                 doc.addImage(base64Logo, 'PNG', 12, 12, 40, 15)
+                doc.setFontSize(10).setTextColor(100, 116, 139).setFont('helvetica', 'bold').text(companyName, 12, 32)
             } catch (e) {
-                doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
+                doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text(companyName, 12, 22)
             }
         } else {
-            doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
+            doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text(companyName, 12, 22)
         }
     } else {
-        doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
+        doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text(companyName, 12, 22)
     }
 
     doc.setFontSize(16).setTextColor(30, 41, 59).setFont('helvetica', 'bold').text('BULLETIN DE PAIEMENT', pageWidth / 2, 22, { align: 'center' })
@@ -181,16 +183,21 @@ export const generateAbsencePDF = async (request: any, profile: any, settings: a
     doc.setLineWidth(0.1)
     doc.rect(7, 7, pageWidth - 14, pageHeight - 14)
 
+    const companyName = settings?.startup_name || 'HERIX'
+
     // Header
     if (settings?.logo_url) {
         const base64Logo = await getBase64Image(settings.logo_url)
         if (base64Logo) {
             try {
-                doc.addImage(base64Logo, 'PNG', 12, 12, 40, 15)
+                doc.addImage(base64Logo, 'PNG', 12, 12, 30, 12)
+                doc.setFontSize(8).setTextColor(100, 116, 139).setFont('helvetica', 'bold').text(companyName, 12, 28)
             } catch (e) {
                 console.warn('Could not add logo to PDF:', e)
             }
         }
+    } else {
+        doc.setFontSize(14).setTextColor(59, 130, 246).setFont('helvetica', 'bold').text(companyName, 12, 22)
     }
 
     doc.setFontSize(20).setTextColor(30, 41, 59).setFont('helvetica', 'bold')

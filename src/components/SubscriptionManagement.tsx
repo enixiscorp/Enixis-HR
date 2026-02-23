@@ -10,12 +10,20 @@ import {
     ShieldCheck,
     ShieldAlert,
     RefreshCcw,
-    Search,
-    Clock,
-    CheckCircle2,
     XCircle,
-    Building2
+    Building2,
+    Info,
+    Search as SearchIcon,
+    Clock,
+    CheckCircle2
 } from 'lucide-react'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from './ui/dialog'
 
 export default function SubscriptionManagement() {
     const [users, setUsers] = useState<Profile[]>([])
@@ -120,7 +128,7 @@ export default function SubscriptionManagement() {
                     <p className="text-slate-400 mt-1">Gérez les accès, les validations et les durées de souscription.</p>
                 </div>
                 <div className="relative w-full md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <Input
                         placeholder="Rechercher..."
                         value={search}
@@ -203,14 +211,77 @@ export default function SubscriptionManagement() {
 
                                     {/* Action Buttons */}
                                     <div className="flex items-center gap-3 w-full xl:w-auto">
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="border-slate-800 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/5 h-10 px-4"
+                                                >
+                                                    <Info className="w-4 h-4 mr-2" />
+                                                    Détails
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl">
+                                                <DialogHeader>
+                                                    <DialogTitle className="text-2xl font-black flex items-center gap-2">
+                                                        <Building2 className="w-6 h-6 text-cyan-400" />
+                                                        Détails de l'Abonnement
+                                                    </DialogTitle>
+                                                </DialogHeader>
+                                                <div className="space-y-6 py-4">
+                                                    {/* Plan Info */}
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/10">
+                                                            <p className="text-[10px] uppercase font-black text-cyan-500/60 mb-1">Offre souscrite</p>
+                                                            <p className="text-lg font-bold text-white capitalize">{user.plan || 'Non spécifié'}</p>
+                                                        </div>
+                                                        <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                                                            <p className="text-[10px] uppercase font-black text-blue-500/60 mb-1">Status Global</p>
+                                                            <Badge className={user.is_approved ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"}>
+                                                                {user.is_approved ? 'Compte Actif' : 'Compte Inactif'}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Team Section */}
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-sm font-black text-slate-400 flex items-center gap-2">
+                                                            <Users className="w-4 h-4" />
+                                                            Membres de l'Équipe ({users.filter(u => u.parent_id === user.id).length})
+                                                        </h4>
+                                                        <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                                            {users.filter(u => u.parent_id === user.id).length === 0 ? (
+                                                                <div className="py-8 text-center bg-slate-800/20 rounded-xl border border-dashed border-slate-800">
+                                                                    <p className="text-slate-500 text-sm italic">Aucun membre d'équipe créé par cet utilisateur.</p>
+                                                                </div>
+                                                            ) : (
+                                                                users.filter(u => u.parent_id === user.id).map(member => (
+                                                                    <div key={member.id} className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-800/50">
+                                                                        <div>
+                                                                            <p className="font-bold text-sm text-white">{member.first_name} {member.last_name}</p>
+                                                                            <p className="text-[10px] text-slate-500">{member.email}</p>
+                                                                        </div>
+                                                                        <Badge variant="outline" className="text-[10px] border-slate-700 text-slate-400">
+                                                                            {member.role === 'collaborator' ? 'Collaborateur' : 'Admin'}
+                                                                        </Badge>
+                                                                    </div>
+                                                                ))
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+
                                         <Button
                                             size="sm"
                                             variant="outline"
                                             disabled={updating === user.id}
                                             onClick={() => handleToggleApproval(user.id, !!user.is_approved)}
                                             className={user.is_approved
-                                                ? "border-red-500/30 text-red-400 hover:bg-red-500/10 flex-1 xl:flex-none h-10"
-                                                : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 flex-1 xl:flex-none h-10"}
+                                                ? "border-red-500/30 text-red-400 hover:bg-red-500/10 flex-1 xl:flex-none h-10 px-4"
+                                                : "border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 flex-1 xl:flex-none h-10 px-4"}
                                         >
                                             {user.is_approved ? <ShieldAlert className="w-4 h-4 mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
                                             {user.is_approved ? 'Désactiver' : 'Activer'}

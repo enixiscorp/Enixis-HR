@@ -7,6 +7,7 @@ export interface PlatformSettings {
     platform_name: string
     location: string
     company_address: string | null
+    startup_name: string | null
     updated_at: string
 }
 

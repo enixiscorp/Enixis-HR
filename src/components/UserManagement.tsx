@@ -66,10 +66,26 @@ export function UserManagement() {
 
             if (error) throw error
 
+            // Trigger welcome email via Edge Function
+            try {
+                await supabase.functions.invoke('send-welcome-email', {
+                    body: {
+                        email: formData.email,
+                        password: formData.password,
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        loginUrl: window.location.origin + '/login'
+                    }
+                })
+            } catch (emailErr) {
+                console.warn('Could not send welcome email:', emailErr)
+                // We don't throw here to avoid blocking user creation if email fails
+            }
+
             setIsCreateDialogOpen(false)
             setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'collaborator' })
             refreshUsers()
-            toast('Compte et profil créés avec succès !', 'success')
+            toast('Compte et profil créés avec succès ! Un email a été envoyé au collaborateur.', 'success')
         } catch (err: any) {
             console.error('Error creating user:', err)
             toast(err.message || 'Erreur lors de la création du compte.', 'error')
