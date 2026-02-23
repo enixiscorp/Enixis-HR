@@ -3,7 +3,6 @@ import { supabase } from '@/lib/supabase'
 
 export interface PlatformSettings {
     id: string
-    user_id: string | null
     logo_url: string | null
     platform_name: string
     location: string
@@ -18,31 +17,17 @@ export function usePlatformSettings() {
 
     const fetchSettings = useCallback(async () => {
         try {
-            // Get the current user's ID
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
-                setLoading(false)
-                return
-            }
-
-            // Fetch settings for this specific user
             const { data, error } = await supabase
                 .from('platform_settings')
                 .select('*')
-                .eq('user_id', user.id)
-                .maybeSingle()
+                .single()
 
-            if (error) {
-                console.error('Error fetching platform settings:', error)
-                setLoading(false)
-                return
+            if (error && error.code !== 'PGRST116') {
+                throw error
             }
 
             if (data) {
                 setSettings(data)
-            } else {
-                // No settings yet for this admin — this is fine, they'll create on first save
-                setSettings(null)
             }
         } catch (err) {
             console.error('Error fetching platform settings:', err)
@@ -52,27 +37,31 @@ export function usePlatformSettings() {
     }, [])
 
     const updateSettings = async (updates: Partial<PlatformSettings>) => {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) throw new Error('Non authentifié')
+        try {
+            // Fetch latest ID to avoid duplicates
+            const { data: latest } = await supabase
+                .from('platform_settings')
+                .select('id')
+                .maybeSingle()
 
-        const payload = {
-            user_id: user.id,
-            platform_name: updates.startup_name || settings?.platform_name || 'HERIX',
-            updated_at: new Date().toISOString(),
-            ...updates
+            const { error } = await supabase
+                .from('platform_settings')
+                .upsert({
+                    id: latest?.id || settings?.id,
+                    platform_name: 'HERIX',
+                    is_singleton: true,
+                    updated_at: new Date().toISOString(),
+                    ...updates
+                }, {
+                    onConflict: 'id'
+                })
+
+            if (error) throw error
+            await fetchSettings()
+        } catch (err) {
+            console.error('Error updating settings:', err)
+            throw err
         }
-
-        // Use upsert on user_id conflict (one row per admin)
-        const { error } = await supabase
-            .from('platform_settings')
-            .upsert(payload, { onConflict: 'user_id' })
-
-        if (error) {
-            console.error('Error updating settings:', error)
-            throw error
-        }
-
-        await fetchSettings()
     }
 
     useEffect(() => {

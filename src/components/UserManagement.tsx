@@ -70,7 +70,7 @@ export function UserManagement() {
 
             // Trigger welcome email via Edge Function
             try {
-                await supabase.functions.invoke('send-welcome-email', {
+                const { data: emailData, error: emailError } = await supabase.functions.invoke('send-welcome-email', {
                     body: {
                         email: formData.email,
                         password: formData.password,
@@ -79,9 +79,14 @@ export function UserManagement() {
                         loginUrl: window.location.origin + '/login'
                     }
                 })
+                if (emailError || emailData?.error) {
+                    const msg = emailError?.message || emailData?.error || 'Erreur inconnue'
+                    console.warn('[Email] Could not send welcome email:', msg)
+                    toast(`Compte créé, mais l'email de bienvenue n'a pas pu être envoyé (${msg}). Vérifiez la clé Resend dans Supabase.`, 'warning')
+                }
             } catch (emailErr) {
                 console.warn('Could not send welcome email:', emailErr)
-                // We don't throw here to avoid blocking user creation if email fails
+                // Don't block user creation if email failed
             }
 
             setIsCreateDialogOpen(false)
@@ -273,6 +278,7 @@ export function UserManagement() {
                                                     <SelectContent>
                                                         <SelectItem value="collaborator">Collaborateur</SelectItem>
                                                         <SelectItem value="admin">Administrateur</SelectItem>
+                                                        <SelectItem value="super_admin">Super Administrateur</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -376,11 +382,8 @@ export function UserManagement() {
                                                     collaborators.map((user: Profile) => (
                                                         <tr key={user.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
                                                             <td className="py-3 px-4">
-                                                                <div className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                                                                <div className="font-medium text-slate-900 dark:text-white">
                                                                     {user.first_name} {user.last_name}
-                                                                    {user.id === profile?.id && (
-                                                                        <span className="text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5 rounded-full font-bold">Vous</span>
-                                                                    )}
                                                                 </div>
                                                                 <div className="text-xs text-slate-500">{user.id.substring(0, 8)}...</div>
                                                             </td>
@@ -423,25 +426,19 @@ export function UserManagement() {
                                                             )}
                                                             <td className="py-3 px-4 text-right">
                                                                 <div className="flex justify-end gap-1">
-                                                                    {user.id === profile?.id ? (
-                                                                        <span className="text-xs text-slate-500 italic px-2">Profil protégé</span>
-                                                                    ) : (
-                                                                        <>
-                                                                            <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
-                                                                                <Edit2 className="w-4 h-4 mr-1 text-slate-600" />
-                                                                                Éditer
-                                                                            </Button>
-                                                                            {user.role !== 'super_admin' && (isSuperAdmin || user.role === 'collaborator') && (
-                                                                                <Button
-                                                                                    variant="ghost"
-                                                                                    size="sm"
-                                                                                    onClick={() => handleDeleteUser(user)}
-                                                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                                                >
-                                                                                    <Trash2 className="w-4 h-4" />
-                                                                                </Button>
-                                                                            )}
-                                                                        </>
+                                                                    <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                                                                        <Edit2 className="w-4 h-4 mr-1 text-slate-600" />
+                                                                        Éditer
+                                                                    </Button>
+                                                                    {user.role !== 'super_admin' && (isSuperAdmin || user.role === 'collaborator') && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => handleDeleteUser(user)}
+                                                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </Button>
                                                                     )}
                                                                 </div>
                                                             </td>
