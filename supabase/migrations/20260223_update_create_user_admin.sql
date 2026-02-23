@@ -39,9 +39,9 @@ BEGIN
     )
     RETURNING id INTO new_user_id;
 
-    -- Create profile with email, parent_id AND visible_password
-    INSERT INTO profiles (id, first_name, last_name, role, status, email, parent_id, visible_password)
-    VALUES (new_user_id, p_first_name, p_last_name, p_role, 'active', p_email, p_parent_id, p_password);
+    -- Create profile with email and parent_id
+    INSERT INTO profiles (id, first_name, last_name, role, status, email, parent_id)
+    VALUES (new_user_id, p_first_name, p_last_name, p_role, 'active', p_email, p_parent_id);
 
     RETURN new_user_id;
 END;
