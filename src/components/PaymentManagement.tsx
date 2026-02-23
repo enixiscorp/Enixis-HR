@@ -61,7 +61,7 @@ export function PaymentManagement({ view = 'all' }: PaymentManagementProps) {
         payments,
         loading: paymentsLoading,
         refresh: refreshPayments
-    } = usePayments(isAdmin ? undefined : profile?.id)
+    } = usePayments(profile?.role === 'super_admin' ? undefined : profile?.id)
     const { revenues } = useRevenues(isAdmin ? undefined : profile?.id)
     const { prestations, loading: loadingPrestations } = usePrestations()
     const { toast } = useToast()

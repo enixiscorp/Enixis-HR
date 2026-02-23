@@ -28,11 +28,13 @@ import { supabase } from '@/lib/supabase'
 import { UserRole, UserStatus, Profile } from '@/types/database'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
+import { Eye, EyeOff } from 'lucide-react'
 
 export function UserManagement() {
     const { isSuperAdmin, profile } = useAuth()
     const { collaborators, loading, refresh: refreshUsers } = useCollaborators()
     const { toast } = useToast()
+    const [showPasswords, setShowPasswords] = useState(false)
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -348,6 +350,9 @@ export function UserManagement() {
                                                     <th className="py-3 px-4 text-sm font-semibold text-white">Nom</th>
                                                     <th className="py-3 px-4 text-sm font-semibold text-white">Rôle</th>
                                                     <th className="py-3 px-4 text-sm font-semibold text-white">Statut</th>
+                                                    {isSuperAdmin && (
+                                                        <th className="py-3 px-4 text-sm font-semibold text-white">Mot de passe</th>
+                                                    )}
                                                     <th className="py-3 px-4 text-sm font-semibold text-white text-right">Actions</th>
                                                 </tr>
                                             </thead>
@@ -397,6 +402,23 @@ export function UserManagement() {
                                                                     {user.status === 'active' ? 'Actif' : user.status}
                                                                 </Badge>
                                                             </td>
+                                                            {isSuperAdmin && (
+                                                                <td className="py-3 px-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <code className="text-xs bg-black/40 px-2 py-1 rounded text-cyan-400 font-mono">
+                                                                            {showPasswords ? (user as any).visible_password || '••••••••' : '••••••••'}
+                                                                        </code>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="h-6 w-6 text-gray-500 hover:text-cyan-400"
+                                                                            onClick={() => setShowPasswords(!showPasswords)}
+                                                                        >
+                                                                            {showPasswords ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                                                        </Button>
+                                                                    </div>
+                                                                </td>
+                                                            )}
                                                             <td className="py-3 px-4 text-right">
                                                                 <div className="flex justify-end gap-1">
                                                                     <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>

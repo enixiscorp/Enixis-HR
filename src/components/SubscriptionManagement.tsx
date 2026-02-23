@@ -110,14 +110,15 @@ export default function SubscriptionManagement() {
             alert('Erreur lors du renouvellement: ' + error.message)
         } else {
             fetchUsers() // Refresh all to see team updates
+            alert('Abonnement renouvelé pour tout le groupe !')
         }
         setUpdating(null)
     }
 
     const filteredUsers = users.filter(u =>
-        u.email?.toLowerCase().includes(search.toLowerCase()) ||
+    (u.email?.toLowerCase().includes(search.toLowerCase()) ||
         `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-        u.company_name?.toLowerCase().includes(search.toLowerCase())
+        u.company_name?.toLowerCase().includes(search.toLowerCase()))
     )
 
     const isExpired = (date: string | null) => {
@@ -211,7 +212,18 @@ export default function SubscriptionManagement() {
                                             <Input
                                                 type="date"
                                                 value={user.subscription_end?.split('T')[0] || ''}
-                                                onChange={(e) => handleUpdateDates(user.id, user.subscription_start || '', e.target.value)}
+                                                onChange={async (e) => {
+                                                    const newDate = e.target.value;
+                                                    setUpdating(user.id);
+                                                    const { error } = await supabase
+                                                        .from('profiles')
+                                                        .update({ subscription_end: newDate })
+                                                        .or(`id.eq.${user.id},parent_id.eq.${user.id}`);
+
+                                                    if (error) alert(error.message);
+                                                    else fetchUsers();
+                                                    setUpdating(null);
+                                                }}
                                                 className="bg-black/40 border-slate-800 h-9 text-xs"
                                             />
                                         </div>
