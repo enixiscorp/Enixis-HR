@@ -51,7 +51,7 @@ export default function SignupPage() {
                         last_name: formData.lastName,
                         company_name: formData.companyName,
                         plan: formData.plan,
-                        role: 'collaborator' // Every individual signup starts as collaborator/owner of their space
+                        role: 'admin' // Every individual signup starts as admin to manage their own team
                     }
                 }
             })

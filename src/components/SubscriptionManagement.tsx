@@ -52,18 +52,21 @@ export default function SubscriptionManagement() {
 
     const handleToggleApproval = async (userId: string, currentStatus: boolean) => {
         setUpdating(userId)
+        const newStatus = !currentStatus
+
+        // Update user AND their team
         const { error } = await supabase
             .from('profiles')
             .update({
-                is_approved: !currentStatus,
-                status: !currentStatus ? 'active' : 'suspended'
+                is_approved: newStatus,
+                status: newStatus ? 'active' : 'suspended'
             })
-            .eq('id', userId)
+            .or(`id.eq.${userId},parent_id.eq.${userId}`)
 
         if (error) {
             alert('Erreur: ' + error.message)
         } else {
-            setUsers(users.map(u => u.id === userId ? { ...u, is_approved: !currentStatus, status: !currentStatus ? 'active' : 'suspended' } : (u as any)))
+            fetchUsers() // Refresh to reflect changes in the whole team
         }
         setUpdating(null)
     }
@@ -98,7 +101,7 @@ export default function SubscriptionManagement() {
             newEnd.setMonth(newEnd.getMonth() + 1) // Default +1 month for Starter/Others
         }
 
-        const nextEnd = newEnd.toISOString()
+        const nextEnd = newEnd.toISOString().split('T')[0] // Use YYYY-MM-DD for consistency
 
         // Update user and their team
         const { error } = await supabase
@@ -115,10 +118,13 @@ export default function SubscriptionManagement() {
         setUpdating(null)
     }
 
+    // Filter to show only top-level accounts (admins/owners) in the main list
+    // Collaborators are viewed within their parent's details
     const filteredUsers = users.filter(u =>
-    (u.email?.toLowerCase().includes(search.toLowerCase()) ||
-        `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-        u.company_name?.toLowerCase().includes(search.toLowerCase()))
+        u.parent_id === null && // Only top-level
+        (u.email?.toLowerCase().includes(search.toLowerCase()) ||
+            `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
+            u.company_name?.toLowerCase().includes(search.toLowerCase()))
     )
 
     const isExpired = (date: string | null) => {

@@ -58,19 +58,19 @@ export class ReportGenerator {
                     doc.setFontSize(22)
                     doc.setTextColor(6, 182, 212) // Cyan-500
                     doc.setFont('helvetica', 'bold')
-                    doc.text('HERIX', 12, 22)
+                    doc.text(settings?.startup_name || 'HERIX', 12, 22)
                 }
             } else {
                 doc.setFontSize(22)
                 doc.setTextColor(6, 182, 212)
                 doc.setFont('helvetica', 'bold')
-                doc.text('HERIX', 12, 22)
+                doc.text(settings?.startup_name || 'HERIX', 12, 22)
             }
         } else {
             doc.setFontSize(22)
             doc.setTextColor(6, 182, 212)
             doc.setFont('helvetica', 'bold')
-            doc.text('HERIX', 12, 22)
+            doc.text(settings?.startup_name || 'HERIX', 12, 22)
         }
 
         // Title with underline decoration
@@ -206,13 +206,13 @@ export class ReportGenerator {
                 try {
                     doc.addImage(base64Logo, 'PNG', 12, 12, 40, 15)
                 } catch (e) {
-                    doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
+                    doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text(settings?.startup_name || 'HERIX', 12, 22)
                 }
             } else {
-                doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
+                doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text(settings?.startup_name || 'HERIX', 12, 22)
             }
         } else {
-            doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text('HERIX', 12, 22)
+            doc.setFontSize(22).setTextColor(124, 58, 237).setFont('helvetica', 'bold').text(settings?.startup_name || 'HERIX', 12, 22)
         }
 
         doc.setFontSize(16).setTextColor(30, 41, 59).setFont('helvetica', 'bold').text('BULLETIN DE PAIEMENT', pageWidth / 2, 22, { align: 'center' })

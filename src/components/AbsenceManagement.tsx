@@ -252,19 +252,21 @@ export function AbsenceManagement() {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-7 w-7 p-0 text-gray-400 hover:text-cyan-400"
+                                                            className="h-7 px-2 text-gray-400 hover:text-cyan-400 gap-1"
                                                             onClick={() => generateAbsencePDF(request, request.profile, settings)}
                                                         >
                                                             <FileDown className="w-3.5 h-3.5" />
+                                                            <span className="text-xs">Télécharger</span>
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-7 w-7 p-0 text-gray-500 hover:text-red-400"
+                                                            className="h-7 px-2 text-gray-500 hover:text-red-400 gap-1"
                                                             onClick={() => handleDelete(request.id)}
                                                             title="Supprimer de l'historique"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
+                                                            <span className="text-xs">Supprimer</span>
                                                         </Button>
                                                     </div>
                                                 </td>
