@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Sparkles, Check } from 'lucide-react'
+import { Sparkles, Check, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 const pricingPlans = [
@@ -12,26 +12,18 @@ const pricingPlans = [
     { id: 'enterprise', name: 'Enterprise - Sur mesure', value: 'enterprise' }
 ]
 
-// Function to generate random password
-const generatePassword = (length = 12) => {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
-    let password = ''
-    for (let i = 0; i < length; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length))
-    }
-    return password
-}
-
 export default function SignupPage() {
     const navigate = useNavigate()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
 
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         email: '',
+        password: '',
         phone: '',
         companyName: '',
         address: '',
@@ -49,47 +41,24 @@ export default function SignupPage() {
         setLoading(true)
 
         try {
-            // Generate random password
-            const generatedPassword = generatePassword()
-
-            // Create user account via Supabase Admin function
-            const { error: signupError } = await supabase.rpc('create_user_admin', {
-                p_email: formData.email,
-                p_first_name: formData.firstName,
-                p_last_name: formData.lastName,
-                p_password: generatedPassword,
-                p_role: 'collaborator'
+            // Signup using Supabase Auth
+            const { error: signupError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        first_name: formData.firstName,
+                        last_name: formData.lastName,
+                        company_name: formData.companyName,
+                        plan: formData.plan,
+                        role: 'collaborator' // Every individual signup starts as collaborator/owner of their space
+                    }
+                }
             })
 
-            if (signupError) {
-                throw signupError
-            }
-
-            // Here you would typically send an email with credentials
-            // For now, we'll show a success message with the password
-            // In production, integrate with an email service like SendGrid, Mailgun, etc.
-
-            console.log('Account created successfully!')
-            console.log('Email:', formData.email)
-            console.log('Temporary Password:', generatedPassword)
-            console.log('Plan:', formData.plan)
-            console.log('Company:', formData.companyName)
-
-            // TODO: Send email via email service
-            // await sendWelcomeEmail({
-            //     email: formData.email,
-            //     password: generatedPassword,
-            //     firstName: formData.firstName,
-            //     plan: formData.plan
-            // })
+            if (signupError) throw signupError
 
             setSuccess(true)
-
-            // Show success message and redirect after 3 seconds
-            setTimeout(() => {
-                navigate('/login')
-            }, 3000)
-
         } catch (err: any) {
             console.error('Signup error:', err)
             setError(err.message || 'Une erreur est survenue lors de l\'inscription')
@@ -100,24 +69,29 @@ export default function SignupPage() {
 
     if (success) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-950">
-                <div className="max-w-md w-full p-8 bg-slate-900 rounded-lg shadow-lg border border-cyan-500/20">
+            <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6">
+                <div className="max-w-md w-full p-8 bg-slate-900 rounded-2xl shadow-2xl border border-cyan-500/20">
                     <div className="text-center">
-                        <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-cyan-500/30">
-                            <Check className="w-8 h-8 text-cyan-400" />
+                        <div className="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-cyan-500/20 animate-pulse">
+                            <Check className="w-10 h-10 text-cyan-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-2">Compte créé avec succès !</h2>
-                        <p className="text-gray-400 mb-4">
-                            Un email contenant vos identifiants de connexion a été envoyé à <strong className="text-white">{formData.email}</strong>
+                        <h2 className="text-3xl font-black text-white mb-4">Inscription réussie !</h2>
+                        <p className="text-gray-400 mb-6 leading-relaxed">
+                            Un email d'activation a été envoyé à <strong className="text-white">{formData.email}</strong>.
+                            Vérifiez votre boîte de réception pour confirmer votre compte.
                         </p>
-                        <p className="text-sm text-gray-500 mb-6">
-                            Vous serez redirigé vers la page de connexion dans quelques instants...
-                        </p>
+
+                        <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/10 mb-8">
+                            <p className="text-sm text-cyan-400 font-medium leading-relaxed">
+                                ⚠️ Important : Votre accès au tableau de bord HERIX sera activé par un administrateur après validation de votre souscription.
+                            </p>
+                        </div>
+
                         <Button
                             onClick={() => navigate('/login')}
-                            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 shadow-lg shadow-cyan-500/50"
+                            className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 font-bold text-lg shadow-lg shadow-cyan-500/30"
                         >
-                            Se connecter maintenant
+                            Retour à la connexion
                         </Button>
                     </div>
                 </div>
@@ -126,134 +100,171 @@ export default function SignupPage() {
     }
 
     return (
-        <div className="min-h-screen flex">
-            {/* Left Panel - Cyan Gradient */}
-            <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-cyan-500 via-cyan-600 to-blue-600 p-12 flex-col justify-between text-white relative overflow-hidden">
-                {/* Animated background circles */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div className="min-h-screen flex bg-slate-950 font-sans">
+            {/* Left Panel - Cyan Gradient (Hidden on small screens) */}
+            <div className="hidden lg:flex lg:w-2/5 bg-gradient-to-br from-cyan-600 via-blue-600 to-purple-700 p-12 flex-col justify-between text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-cyan-400/10 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-12">
-                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                            <Sparkles className="w-7 h-7 text-cyan-500" />
+                    <div className="flex items-center gap-4 mb-16">
+                        <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl">
+                            <Sparkles className="w-8 h-8 text-cyan-200" />
                         </div>
-                        <h1 className="text-3xl font-black">HERIX</h1>
+                        <h1 className="text-4xl font-black tracking-tighter">HERIX</h1>
                     </div>
 
-                    <div className="space-y-8">
+                    <div className="space-y-10">
                         <div>
-                            <h2 className="text-4xl font-bold mb-4">
-                                Lancez-vous en<br />quelques minutes
+                            <h2 className="text-5xl font-black mb-6 leading-tight">
+                                Rejoignez le futur <br />de la gestion RH
                             </h2>
-                            <p className="text-cyan-100 text-lg">
-                                Créez votre compte et commencez à gérer votre équipe professionnellement dès aujourd'hui.
+                            <p className="text-cyan-100 text-xl font-medium opacity-80 leading-relaxed">
+                                Une solution premium pour des équipes d'exception. <br />
+                                Gérez plannings, paiements et absences en un clic.
                             </p>
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <Check className="w-5 h-5" />
-                                <span>Configuration en moins de 5 minutes</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Check className="w-5 h-5" />
-                                <span>Aucune carte bancaire requise</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Check className="w-5 h-5" />
-                                <span>Essai gratuit de 14 jours</span>
-                            </div>
+                        <div className="grid gap-6">
+                            {[
+                                "Activation en moins de 48h",
+                                "Conforme aux normes européennes",
+                                "Support premium 24/7",
+                                "Zéro frais cachés"
+                            ].map((text, i) => (
+                                <div key={i} className="flex items-center gap-4 group">
+                                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-cyan-400/20 transition-colors">
+                                        <Check className="w-5 h-5 text-cyan-200" />
+                                    </div>
+                                    <span className="text-lg font-medium opacity-90">{text}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
 
-                <div className="text-sm text-cyan-100 relative z-10">
-                    © {new Date().getFullYear()} HERIX - Tous droits réservés
+                <div className="text-sm font-medium text-cyan-100/60 relative z-10 flex items-center gap-4">
+                    <span>© {new Date().getFullYear()} HERIX Corp.</span>
+                    <span className="w-1 h-1 bg-cyan-100/40 rounded-full" />
+                    <span>Lomé, Togo</span>
                 </div>
             </div>
 
-            {/* Right Panel - Black/Dark Form */}
-            <div className="flex-1 flex items-center justify-center p-8 bg-slate-950 overflow-y-auto">
-                <div className="w-full max-w-md py-8">
-                    <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-white mb-2">
-                            Remplissez vos informations pour créer votre compte
+            {/* Right Panel - Modern Signup Form */}
+            <div className="flex-1 flex items-center justify-center p-6 sm:p-12 overflow-y-auto">
+                <div className="w-full max-w-lg py-12">
+                    <div className="mb-12 text-center lg:text-left">
+                        <h2 className="text-4xl font-black text-white mb-4 tracking-tight">
+                            Commencez votre expérience
                         </h2>
+                        <p className="text-slate-400 text-lg">
+                            Créez votre compte administrateur en quelques secondes.
+                        </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
-                            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
-                                <p className="text-sm text-red-400">{error}</p>
+                            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 animate-shake">
+                                <p className="text-sm text-red-400 font-medium">{error}</p>
                             </div>
                         )}
 
                         {/* Name Fields */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <Input
-                                placeholder="Jean"
-                                value={formData.firstName}
-                                onChange={(e) => handleChange('firstName', e.target.value)}
-                                required
-                                className="h-12 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
-                            />
-                            <Input
-                                placeholder="Dupont"
-                                value={formData.lastName}
-                                onChange={(e) => handleChange('lastName', e.target.value)}
-                                required
-                                className="h-12 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
-                            />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-400 ml-1">Prénom</label>
+                                <Input
+                                    placeholder="Jean"
+                                    value={formData.firstName}
+                                    onChange={(e) => handleChange('firstName', e.target.value)}
+                                    required
+                                    className="h-12 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/10 rounded-xl"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-400 ml-1">Nom</label>
+                                <Input
+                                    placeholder="Dupont"
+                                    value={formData.lastName}
+                                    onChange={(e) => handleChange('lastName', e.target.value)}
+                                    required
+                                    className="h-12 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/10 rounded-xl"
+                                />
+                            </div>
                         </div>
 
                         {/* Email */}
-                        <Input
-                            type="email"
-                            placeholder="votre@exemple.com"
-                            value={formData.email}
-                            onChange={(e) => handleChange('email', e.target.value)}
-                            required
-                            className="h-12 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
-                        />
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-400 ml-1">Adresse Email Professionnelle</label>
+                            <Input
+                                type="email"
+                                placeholder="votre@entreprise.com"
+                                value={formData.email}
+                                onChange={(e) => handleChange('email', e.target.value)}
+                                required
+                                className="h-12 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/10 rounded-xl"
+                            />
+                        </div>
 
-                        {/* Phone */}
-                        <Input
-                            type="tel"
-                            placeholder="+33 6 12 34 56 78"
-                            value={formData.phone}
-                            onChange={(e) => handleChange('phone', e.target.value)}
-                            required
-                            className="h-12 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
-                        />
+                        {/* Password */}
+                        <div className="space-y-2 relative">
+                            <label className="text-sm font-bold text-slate-400 ml-1">Mot de passe</label>
+                            <div className="relative">
+                                <Input
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Minimum 8 caractères"
+                                    value={formData.password}
+                                    onChange={(e) => handleChange('password', e.target.value)}
+                                    required
+                                    minLength={8}
+                                    className="h-12 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/10 rounded-xl pr-12"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-cyan-400 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
 
-                        {/* Company Name */}
-                        <Input
-                            placeholder="123 Rue de la Paix, 75001 Paris"
-                            value={formData.address}
-                            onChange={(e) => handleChange('address', e.target.value)}
-                            required
-                            className="h-12 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
-                        />
-
-                        {/* SIRET */}
-                        <Input
-                            placeholder="123456789"
-                            value={formData.siret}
-                            onChange={(e) => handleChange('siret', e.target.value)}
-                            required
-                            className="h-12 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
-                        />
+                        {/* Company Info */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-400 ml-1">Entreprise</label>
+                                <Input
+                                    placeholder="Nom de la société"
+                                    value={formData.companyName}
+                                    onChange={(e) => handleChange('companyName', e.target.value)}
+                                    required
+                                    className="h-12 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/10 rounded-xl"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-400 ml-1">Téléphone</label>
+                                <Input
+                                    type="tel"
+                                    placeholder="+228 XX XX XX XX"
+                                    value={formData.phone}
+                                    onChange={(e) => handleChange('phone', e.target.value)}
+                                    required
+                                    className="h-12 bg-slate-900/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/10 rounded-xl"
+                                />
+                            </div>
+                        </div>
 
                         {/* Plan Selection */}
-                        <div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-400 ml-1">Plan de souscription</label>
                             <Select value={formData.plan} onValueChange={(value) => handleChange('plan', value)}>
-                                <SelectTrigger className="h-12 bg-slate-900 border-slate-700 text-white focus:border-cyan-500 focus:ring-cyan-500/20">
+                                <SelectTrigger className="h-12 bg-slate-900/50 border-slate-800 text-white focus:border-cyan-500/50 rounded-xl">
                                     <SelectValue placeholder="Choisir une offre" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-slate-900 border-slate-700">
+                                <SelectContent className="bg-slate-900 border-slate-800">
                                     {pricingPlans.map(plan => (
-                                        <SelectItem key={plan.id} value={plan.value} className="text-white hover:bg-slate-800 focus:bg-slate-800">
+                                        <SelectItem key={plan.id} value={plan.value} className="text-white hover:bg-slate-800 focus:bg-cyan-500/20">
                                             {plan.name}
                                         </SelectItem>
                                     ))}
@@ -261,36 +272,30 @@ export default function SignupPage() {
                             </Select>
                         </div>
 
-                        {/* Submit Button */}
-                        <Button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold text-base shadow-lg shadow-cyan-500/50"
-                        >
-                            {loading ? (
-                                <div className="flex items-center gap-2">
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Création en cours...
-                                </div>
-                            ) : (
-                                'Continuer'
-                            )}
-                        </Button>
+                        <div className="pt-4">
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full h-14 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 hover:scale-[1.02] transition-all duration-300 text-white font-black text-lg shadow-2xl shadow-cyan-500/30 rounded-2xl"
+                            >
+                                {loading ? (
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Initialisation...
+                                    </div>
+                                ) : (
+                                    'Démarrer l\'aventure'
+                                )}
+                            </Button>
+                        </div>
 
-                        <div className="text-center text-sm text-slate-400">
-                            Déjà un compte ?{' '}
-                            <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">
-                                Se connecter
+                        <div className="text-center text-slate-400 font-medium">
+                            Déjà membre ?{' '}
+                            <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-black transition-colors underline-offset-4 hover:underline">
+                                Connectez-vous
                             </Link>
                         </div>
                     </form>
-
-                    <div className="mt-6 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
-                        En créant un compte, vous acceptez les{' '}
-                        <button className="text-cyan-400 hover:underline">Conditions générales</button>
-                        {' '}et la{' '}
-                        <button className="text-cyan-400 hover:underline">Politique de confidentialité</button>
-                    </div>
                 </div>
             </div>
         </div>

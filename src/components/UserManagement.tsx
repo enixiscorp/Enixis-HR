@@ -30,7 +30,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 
 export function UserManagement() {
-    const { isSuperAdmin } = useAuth()
+    const { isSuperAdmin, profile } = useAuth()
     const { collaborators, loading, refresh: refreshUsers } = useCollaborators()
     const { toast } = useToast()
 
@@ -60,7 +60,8 @@ export function UserManagement() {
                 p_password: formData.password,
                 p_first_name: formData.firstName,
                 p_last_name: formData.lastName,
-                p_role: formData.role
+                p_role: formData.role,
+                p_parent_id: profile?.id // Link to the current admin/manager
             })
 
             if (error) throw error

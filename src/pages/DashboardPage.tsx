@@ -25,7 +25,8 @@ import {
     Calendar,
     Wallet,
     Users,
-    AlertTriangle
+    AlertTriangle,
+    ShieldAlert
 } from 'lucide-react'
 import { useSchedules } from '@/hooks/useSchedules'
 import { usePayments } from '@/hooks/usePayments'
@@ -36,9 +37,10 @@ import { MassScheduleEditor } from '@/components/MassScheduleEditor'
 import { Sidebar } from '@/components/Sidebar'
 import { PaymentManagement } from '@/components/PaymentManagement'
 import { LiveActivityView } from '@/components/LiveActivityView'
+import SubscriptionManagement from '@/components/SubscriptionManagement'
 
 export default function DashboardPage() {
-    const { user, profile, signOut, isAdmin, isSuperAdmin } = useAuth()
+    const { user, profile, signOut, isAdmin, isSuperAdmin, isApproved, isSubscriptionActive } = useAuth()
     const { currency, setCurrency, formatCurrency } = useCurrency()
     const { settings } = usePlatformSettings()
 
@@ -127,7 +129,8 @@ export default function DashboardPage() {
                                                         activeTab === 'schedules' ? 'Édition de Masse des Plannings' :
                                                             activeTab === 'absences' ? 'Demandes d\'absences' :
                                                                 activeTab === 'prestations' ? 'Gestion des Services' :
-                                                                    'Configuration Platforme'}
+                                                                    activeTab === 'subscriptions' ? 'Gestion des Abonnements' :
+                                                                        'Configuration Platforme'}
                                 </h1>
                             </div>
 
@@ -171,6 +174,40 @@ export default function DashboardPage() {
 
                 {/* Main Content */}
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+                    {/* Subscription & Approval Blocking Overlay */}
+                    {(!isApproved || !isSubscriptionActive) && !isSuperAdmin && (
+                        <div className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-6 text-center">
+                            <div className="max-w-md w-full bg-slate-900 border border-cyan-500/20 rounded-3xl p-10 shadow-2xl animate-in zoom-in-95">
+                                <div className="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-cyan-500/20">
+                                    <ShieldAlert className="w-10 h-10 text-cyan-400" />
+                                </div>
+                                <h2 className="text-3xl font-black text-white mb-4">
+                                    {!isApproved ? 'Compte en attente' : 'Abonnement expiré'}
+                                </h2>
+                                <p className="text-slate-400 mb-8 leading-relaxed">
+                                    {!isApproved
+                                        ? "Votre compte a été créé avec succès, mais un administrateur doit l'activer avant que vous puissiez accéder à votre espace."
+                                        : "Votre période d'abonnement est terminée. Veuillez contacter votre administrateur pour renouveler votre accès."}
+                                </p>
+                                <div className="space-y-4">
+                                    <Button
+                                        onClick={() => window.location.reload()}
+                                        className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 font-bold text-lg rounded-xl shadow-lg shadow-cyan-500/20"
+                                    >
+                                        Vérifier le statut
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={signOut}
+                                        className="w-full h-12 text-slate-500 hover:text-red-400 hover:bg-red-500/5 font-bold"
+                                    >
+                                        Se déconnecter
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Admin Role Confirmation Notification */}
                     {user && !profile && (
                         <div className="mb-6 p-4 rounded-xl bg-orange-50 border border-orange-200 flex items-center gap-3 text-orange-800 shadow-sm">
@@ -294,6 +331,10 @@ export default function DashboardPage() {
 
                         <TabsContent value="prestations" className="animate-in fade-in slide-in-from-bottom-4">
                             <PrestationManagement />
+                        </TabsContent>
+
+                        <TabsContent value="subscriptions" className="animate-in fade-in slide-in-from-bottom-4">
+                            <SubscriptionManagement />
                         </TabsContent>
 
                         <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-4">

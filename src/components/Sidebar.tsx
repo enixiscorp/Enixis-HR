@@ -10,7 +10,8 @@ import {
     Package,
     CalendarDays,
     Clock,
-    TrendingUp
+    TrendingUp,
+    ShieldCheck
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUnreadMessages } from '@/hooks/useUnreadMessages'
@@ -45,6 +46,7 @@ export function Sidebar({
         { id: 'schedules', label: 'Plannings', icon: CalendarDays, show: isAdmin },
         { id: 'absences', label: 'Demandes', icon: AlertTriangle, show: isAdmin },
         { id: 'prestations', label: 'Services', icon: Package, show: isAdmin },
+        { id: 'subscriptions', label: 'Abonnements', icon: ShieldCheck, show: isSuperAdmin },
         { id: 'settings', label: 'Configuration', icon: Settings, show: isSuperAdmin },
     ]
 

@@ -31,6 +31,11 @@ export interface Profile {
     avatar_url: string | null
     role: UserRole
     status: UserStatus
+    is_approved: boolean
+    subscription_start: string | null
+    subscription_end: string | null
+    parent_id: string | null
+    company_name: string | null
     last_seen_at?: string | null
     last_logout_at?: string | null
     created_at: string

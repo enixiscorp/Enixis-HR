@@ -13,6 +13,8 @@ interface AuthContextType {
     refreshProfile: () => Promise<void>
     isAdmin: boolean
     isSuperAdmin: boolean
+    isApproved: boolean
+    isSubscriptionActive: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -135,6 +137,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin' || user?.email === 'contacteccorp@gmail.com'
     const isSuperAdmin = profile?.role === 'super_admin' || user?.email === 'contacteccorp@gmail.com'
 
+    // Check if user is approved and subscription is active
+    const isApproved = profile?.is_approved === true || isSuperAdmin
+    const isSubscriptionActive = isSuperAdmin || (
+        profile?.subscription_end ? new Date(profile.subscription_end) > new Date() : false
+    )
+
     const value = {
         user,
         profile,
@@ -145,6 +153,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshProfile,
         isAdmin,
         isSuperAdmin,
+        isApproved,
+        isSubscriptionActive,
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
