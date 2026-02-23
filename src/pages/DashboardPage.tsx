@@ -209,14 +209,14 @@ export default function DashboardPage() {
                     )}
 
                     {/* Admin Role Confirmation Notification */}
-                    {user && !profile && (
-                        <div className="mb-6 p-4 rounded-xl bg-orange-50 border border-orange-200 flex items-center gap-3 text-orange-800 shadow-sm">
+                    {user && !profile && user.email !== 'contacteccorp@gmail.com' && (
+                        <div className="mb-6 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center gap-3 text-orange-400 shadow-sm animate-pulse">
                             <AlertTriangle className="w-5 h-5 flex-shrink-0" />
                             <div>
                                 <p className="font-semibold text-sm">Profil introuvable</p>
                                 <p className="text-xs">
                                     Votre profil n'a pas encore été créé ou lié à votre email.
-                                    Exécutez le script SQL fourni dans Supabase pour obtenir vos accès Administrateur.
+                                    Veuillez patienter ou contacter le support.
                                 </p>
                             </div>
                         </div>
